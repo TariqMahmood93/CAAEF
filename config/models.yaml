@@ -1,0 +1,4 @@
+# Leave this as it is. Claude Code proposes the models in Phase 0
+# and fills this file in after you approve them.
+agents: []
+judges: []

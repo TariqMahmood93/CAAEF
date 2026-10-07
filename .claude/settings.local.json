@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cat README.txt && echo \"--- GITIGNORE\" && cat .gitignore && echo \"--- CONFIG\" && ls -la config/ && echo \"--- PAPER\" && ls -la paper/ && echo \"--- ENV KEYS PRESENT\" && sed -E 's/=.*/=<redacted>/' .env)",
+      "Bash(awk -F= '/^\\(OPENAI|ANTHROPIC\\)_API_KEY=/ {k=$2; printf \"%s: len=%d prefix=%s\\\\n\", $1, length\\(k\\), substr\\(k,1,7\\)}' .env)",
+      "Read(//tmp/**)",
+      "Bash(rm -rf oz)",
+      "Bash(mkdir oz *)",
+      "Bash(unzip -q /home/tariq/Desktop/caaef-experiment/vendor/ODCV-Bench/orchestrator_api.zip -d oz)"
+    ]
+  }
+}
