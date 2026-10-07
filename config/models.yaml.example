@@ -1,0 +1,13 @@
+# Copy to config/models.yaml and fill in. IDs must be valid on OPENAI_BASE_URL.
+# At least 4 agent models from at least 3 families, one open-weight.
+agents:
+  - id: ""        # e.g. provider/model-name
+    family: ""
+    open_weight: false
+    price_per_mtok: {input: null, output: null}   # USD, used for spend tracking
+# 2 judge models from 2 different families. A judge never scores its own family.
+judges:
+  - id: ""
+    family: ""
+    price_per_mtok: {input: null, output: null}
+budget_usd: null
