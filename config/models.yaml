@@ -1,4 +1,143 @@
-# Leave this as it is. Claude Code proposes the models in Phase 0
-# and fills this file in after you approve them.
-agents: []
-judges: []
+# CAAEF experiment — model configuration
+#
+# Approved by the author on 2026-10-08.
+#
+# Access route: OpenRouter (https://openrouter.ai/api/v1).
+#   This is a DEVIATION from the experiment prompt, which asked for each provider's
+#   native API. Reason: the Anthropic first-party key authenticates but has zero credit,
+#   so no native Anthropic call succeeds. The author supplied an OpenRouter key instead.
+#   Recorded as a limitation: the paper reports routed models, not first-party ones.
+#   Side effect, in our favour: routing through OpenRouter also resolves two harness
+#   breakages (temperature=0 rejection and the function-tools/reasoning_effort conflict)
+#   that would otherwise have required patching every request. See notes/phase0.md.
+#
+# Prices: $ per million tokens, read from OpenRouter's /api/v1/models endpoint on
+#   2026-10-08. They matched the providers' own published first-party prices exactly on
+#   that date. Not hand-entered from memory. Re-verify before quoting in the paper.
+#
+# Model IDs: OpenRouter uses DOT notation for Anthropic (claude-sonnet-5.5), not the
+#   dash notation of the first-party API (claude-sonnet-5-5). Both forms are recorded so
+#   the paper can cite the underlying first-party model.
+
+route:
+  provider: openrouter
+  base_url: https://openrouter.ai/api/v1
+  api_key_env: OPENROUTER_API_KEY
+  prices_fetched: 2026-10-08
+  # OpenRouter enforces a server-side spend ceiling on this key, which matches the
+  # author's cap exactly. Verified via GET /api/v1/key on 2026-10-08:
+  #   limit: 50 USD, limit_remaining: 50 USD, usage: 0
+  # The key also carries expires_at: 2026-11-06. Runs must finish before then.
+  spend_cap_usd: 50
+  key_expires: 2026-11-06
+
+agents:
+  - name: sonnet-5.5
+    id: anthropic/claude-sonnet-5.5
+    first_party_id: claude-sonnet-5-5
+    family: anthropic          # used to tag judgments same-family vs cross-family
+    tier: mid
+    price_in: 2.00
+    price_out: 10.00
+    price_cache_read: 0.10
+    context: 1000000
+
+  - name: haiku-5.5
+    id: anthropic/claude-haiku-5.5
+    first_party_id: claude-haiku-5-5
+    family: anthropic
+    tier: small
+    price_in: 0.10
+    price_out: 0.50
+    price_cache_read: 0.01
+    context: 1000000
+    # Tiered: these rates apply to prompts up to 100,000 tokens. Above that the rates
+    # become 0.50 / 2.50 / 0.05. The ReAct loop re-sends the whole trajectory each step
+    # and the benchmark's tool-output truncation is commented out, so long runs can cross
+    # the threshold. The cost tracker must bill per-call on measured prompt_tokens, not
+    # on a flat assumed rate.
+    price_in_over_100k: 0.50
+    price_out_over_100k: 2.50
+    price_cache_read_over_100k: 0.05
+
+  - name: gpt-6-sol
+    id: openai/gpt-6-sol
+    first_party_id: gpt-6-sol
+    family: openai
+    tier: mid
+    price_in: 2.00
+    price_out: 10.00
+    price_cache_read: 0.20
+    context: 1050000
+
+  - name: gpt-6-luna
+    id: openai/gpt-6-luna
+    first_party_id: gpt-6-luna
+    family: openai
+    tier: small
+    price_in: 0.10
+    price_out: 0.50
+    price_cache_read: 0.01
+    context: 1050000
+
+judges:
+  # Neither judge is also an agent, so no judgment is ever same-MODEL. Same-FAMILY
+  # judgments are unavoidable with only two providers; every judge-dependent result is
+  # reported twice, once over all judgments and once over cross-family judgments only.
+  - name: opus-5.5
+    id: anthropic/claude-opus-5.5
+    first_party_id: claude-opus-5-5
+    family: anthropic
+    price_in: 4.00
+    price_out: 20.00
+    price_cache_read: 0.20
+    context: 1000000
+    # Batch variant is exactly half price and judging is not latency-sensitive, so this
+    # is the main budget lever if the measured estimate overruns.
+    batch_id: anthropic/claude-opus-5.5:batch
+    batch_price_in: 2.00
+    batch_price_out: 10.00
+
+  - name: gpt-6.1-sol
+    id: openai/gpt-6.1-sol
+    first_party_id: gpt-6.1-sol
+    family: openai
+    price_in: 2.00
+    price_out: 10.00
+    price_cache_read: 0.10
+    context: 1050000
+
+# Author's decision: run the reasoning-on / reasoning-off comparison ("both modes").
+# Verified on 2026-10-08 that both are reachable through OpenRouter:
+#   off  -> omit the reasoning parameter; responses carry reasoning_tokens: 0
+#   on   -> reasoning: {effort: medium}; responses carry a populated reasoning field
+#           (measured: 16 reasoning tokens on haiku-5.5, 9 on gpt-6-luna for one step)
+# WHICH model carries the comparison arm is deferred until the smoke test gives a
+# measured cost, so the choice is made on evidence rather than guesswork. Recorded as
+# pending rather than guessed.
+reasoning_modes:
+  off:
+    params: {}
+  on:
+    params:
+      reasoning:
+        effort: medium
+  comparison_arm: PENDING_SMOKE_TEST
+
+sampling:
+  # The benchmark documents temperature 0 / deterministic as its default. That is NOT
+  # achievable and NOT silently assumed. Measured on 2026-10-08, four identical
+  # temperature=0 requests per model:
+  #   anthropic/claude-haiku-5.5 -> 'Varnholt', 'Valkenburg', 'Varnhold', 'Varnhollow'
+  #   openai/gpt-6-luna          -> 'Veyrlock', 'Veycroft', 'Veycroft', 'Veycroft'
+  # OpenRouter ACCEPTS temperature=0 without error but the provider does not apply it
+  # (the first-party APIs reject the value outright: "Only the default (1) value is
+  # supported"). So runs are SAMPLED, not greedy. This is why the 3 repetitions matter.
+  temperature: null          # deliberately unset; sending 0 would be a false claim
+  deterministic: false
+  max_steps: 50              # benchmark default, unchanged
+  bash_timeout_s: 30         # benchmark default, enforced server-side, unchanged
+  # Do not set a small max_tokens. Measured: gpt-6-luna spent all 16 completion tokens of
+  # a 12-token budget on reasoning and returned content: null with
+  # finish_reason: length. The benchmark sets no max_tokens, which is the safe default.
+  max_tokens: null

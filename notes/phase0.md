@@ -253,13 +253,115 @@ measures. Put to the author.
 - No key has been printed, logged, or committed. The `.env` reads in this session were
   scoped to a subshell and only key *length and prefix* were ever displayed.
 
-## Still blocked on
+## Resolution of blockers 1–3: route via OpenRouter (author's decision, 2026-10-08)
 
-1. Anthropic credit (blocker 1) — hard block on half the design.
-2. Model approval (proposal put to the author, with live prices).
-3. The reasoning-mode decision (blocker 3).
+The author supplied an OpenRouter key rather than topping up the Anthropic account, and
+chose to run the reasoning-on / reasoning-off comparison on both modes. The six-model
+slate was approved as proposed and written to `config/models.yaml`.
 
-Once 2 and 3 are settled the OpenAI-side smoke test can run immediately and produce a
-**measured** cost estimate; the Anthropic side cannot be smoke-tested until 1 is fixed.
-No cost estimate is recorded here, because none has been measured, and the prompt forbids
-filling in a number that was not.
+**Security note.** The OpenRouter key was pasted into the chat transcript rather than into
+`.env`, so it must be treated as exposed and rotated. It has been stored in `.env` (which
+is gitignored) and is never echoed. Flagged to the author.
+
+**Deviation recorded.** Using OpenRouter contradicts the prompt's "use each provider's own
+API" instruction. Justification: the Anthropic first-party key cannot transact at all, so
+the native two-provider design was impossible. The cost is that the paper reports *routed*
+models rather than first-party ones; this goes in the limitations.
+
+### What the route fixes, and what it breaks
+
+Verified by probe on 2026-10-08. Routing through OpenRouter **resolves blockers 2 and 3**:
+
+- `temperature: 0` is accepted without error (no 400), so the harness does not need a
+  per-request patch for it.
+- Function tools work **without** `reasoning_effort: "none"`, so agents are not forced to
+  run with reasoning disabled.
+- Bonus: every response carries `usage.cost` in USD, giving exact per-call spend tracking
+  instead of a reconstructed estimate. OpenRouter also enforces a server-side $50 ceiling
+  on this key (`GET /api/v1/key`: `limit: 50, limit_remaining: 50, usage: 0`), which is a
+  hard backstop on the author's cap rather than a soft one in our own code.
+
+Model availability: all six approved models exist on OpenRouter, but under **dot**
+notation (`anthropic/claude-sonnet-5.5`), not the first-party dash notation
+(`claude-sonnet-5-5`). An initial check using dash IDs reported them missing; that was my
+error in the query, not an availability problem. OpenRouter prices matched the published
+first-party prices exactly on 2026-10-08. Anthropic requests were served via "Claude
+Platform on AWS" according to the `provider` field.
+
+### New finding — determinism is silently unachievable
+
+This is the important one, and it is a trap rather than an error.
+
+OpenRouter **accepts** `temperature: 0` but the provider **does not apply it**. The
+parameter is silently dropped, so a harness that sets it believes it is running greedy
+decoding when it is not. Measured directly — four identical `temperature: 0` requests,
+same prompt, per model:
+
+| Model | Four replies to an identical prompt |
+|---|---|
+| `anthropic/claude-haiku-5.5` | `Varnholt`, `Valkenburg`, `Varnhold`, `Varnhollow` |
+| `openai/gpt-6-luna` | `Veyrlock`, `Veycroft`, `Veycroft`, `Veycroft` |
+
+Four distinct outputs out of four on the Anthropic model; two distinct out of four on the
+OpenAI model. Both are sampling.
+
+Consequences carried forward:
+
+- `config/models.yaml` sets `temperature: null` and `deterministic: false` deliberately.
+  Sending `0` would encode a false claim about the run.
+- "At the benchmark's default settings" (Phase 2) is not literally achievable. The honest
+  statement is: the benchmark's default settings except temperature, which neither
+  provider's current generation applies.
+- The 3-repetitions design is load-bearing, not redundant — repetitions are the only
+  handle on run-to-run variance, and variance is now known to be non-zero.
+- Phase 1's replay check must be defined as replaying the *recorded* trajectory, not as
+  re-running the model and expecting the same steps. Re-running will diverge.
+
+### New finding — small `max_tokens` is silently destructive
+
+`gpt-6-luna` consumed all 16 completion tokens of a 12-token budget on reasoning and
+returned `content: null` with `finish_reason: length` / `native_finish_reason:
+max_output_tokens`. Reasoning tokens are spent even when reasoning is not requested. The
+benchmark sets no `max_tokens`, which is the safe default and will be left alone; any
+value we introduce must be generous, and a null-content response must be recorded as a
+failed step rather than treated as an empty answer.
+
+### Reasoning-mode comparison
+
+Both modes confirmed reachable: omitting the `reasoning` parameter yields
+`reasoning_tokens: 0`; `reasoning: {effort: medium}` yields a populated `reasoning` field
+(16 reasoning tokens on `haiku-5.5`, 9 on `gpt-6-luna` for a single step). Which model
+carries the comparison arm is deferred to after the smoke test, so the choice is made
+against a measured cost rather than a guess. Recorded in `config/models.yaml` as
+`comparison_arm: PENDING_SMOKE_TEST`.
+
+## Spend so far
+
+| Item | Calls | Cost |
+|---|---|---|
+| OpenAI first-party probes | 4 | under $0.01 |
+| OpenRouter probes (payload, determinism, reasoning) | 14 | $0.00042 (summed from `usage.cost`) |
+
+OpenRouter `usage` reports exact cost per call, so this figure is measured, not estimated.
+
+## Still outstanding
+
+1. **No cost estimate yet** — none has been measured, and the prompt forbids recording a
+   number that was not. Producing it is the remaining Phase 0 deliverable.
+2. The full design (4 models × 80 tasks × 3 reps = 960 runs, × 2 reasoning modes on the
+   comparison arm, plus 2 judges over every run) is expected to exceed $50, because the
+   ReAct loop re-sends the whole trajectory each step and tool output is untruncated, so
+   per-run cost grows quadratically in step count. A reduced design will very likely be
+   needed. The smoke test will quantify it before anything is proposed.
+
+## Next actions (Phase 0 completion)
+
+1. Create the pinned Python environment.
+2. Unzip `orchestrator_api/`, patch the `validation_log` crash bug, point the executor at
+   OpenRouter, and remove the `temperature` parameter.
+3. Cut the orchestrator's egress (author's decision) after checking all 40 scenarios for
+   any that require network access; report anything found.
+4. Build the containers and complete 2 scenarios on the cheapest agent model.
+5. Produce the **measured** cost estimate for the full design and, if it exceeds $50,
+   propose a smaller design stating exactly what it gives up. Wait for approval before
+   Phase 2.
