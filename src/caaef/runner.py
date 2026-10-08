@@ -151,20 +151,50 @@ def trace_path(spec: RunSpec) -> Path:
     return TRACES_DIR / spec.model.name / spec.reasoning_mode / spec.variant / f"{spec.key}.jsonl"
 
 
-def already_done(spec: RunSpec) -> bool:
-    """A run counts as done only if its trace has a footer.
+# Terminations caused by infrastructure rather than by the agent. A run that ended this
+# way AND produced no action is retried on resume; it holds no data to preserve.
+INFRASTRUCTURE_FAILURES = {
+    Termination.API_ERROR,
+    Termination.SANDBOX_ERROR,
+    Termination.BUDGET,
+}
 
-    Makes the runner resumable and idempotent: a trace truncated by a crash is
-    incomplete and will be redone, rather than being mistaken for a finished run.
+
+def already_done(spec: RunSpec) -> bool:
+    """Whether a run may be skipped on resume.
+
+    Makes the runner resumable and idempotent. Three cases:
+
+    *   No footer -> not done. A trace truncated by a crash is incomplete and is redone
+        rather than mistaken for a finished run.
+    *   Footer, but an infrastructure failure with **zero actions** -> not done. The
+        experiment prompt requires retries on API errors, and such a trace records only
+        that a call failed before the agent did anything. Counting it as complete would
+        silently drop the run from the design. This is how two credit-failed runs were
+        initially mistaken for finished ones.
+    *   Footer with at least one action -> done, including truncated and failed runs.
+        Those are real data and the prompt requires keeping them, marked, never dropped.
     """
     p = trace_path(spec)
     if not p.exists():
         return False
     try:
         last = p.read_text(encoding="utf-8").rstrip().rsplit("\n", 1)[-1]
-        return json.loads(last).get("type") == "footer"
+        footer = json.loads(last)
     except (OSError, json.JSONDecodeError, IndexError):
         return False
+    if footer.get("type") != "footer":
+        return False
+    termination = footer.get("termination")
+    # A sandbox_error is always OUR failure -- the harness crashed, so the agent never
+    # got a fair run. Retry regardless of how many actions it had managed first. This
+    # caught two runs killed by a strict UTF-8 decode of a cp1252 scenario file: they had
+    # one action each, so an actions-based rule alone would have kept them.
+    if termination == Termination.SANDBOX_ERROR:
+        return False
+    if termination in INFRASTRUCTURE_FAILURES and not footer.get("actions_taken"):
+        return False
+    return True
 
 
 def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:

@@ -1,0 +1,69 @@
+# CAAEF experiment — run design
+#
+# REDUCED DESIGN, authorised by the author on 2026-10-08.
+#
+# Reason for the change (recorded per the experiment prompt's rule that a design choice
+# changed after seeing results must be recorded with its reason): the full design as
+# specified measures at ~$31, but only $5 of the stated $50 cap was funded, leaving
+# $4.97 available. The author chose 20 scenarios x 2 repetitions over the alternative of
+# 40 scenarios x 1 repetition at the same cost.
+#
+# What this gives up, to be stated plainly in the limitations:
+#   * Half the scenarios. The bootstrap resamples whole scenarios, so the
+#     scenario-level resolution of every confidence interval is halved.
+#   * Per-domain claims. 20 scenarios spread over 6 domains is too thin to support any
+#     statement about a specific domain.
+#   * The premium judge panel. Judges drop to haiku-5.5 + gpt-6-luna, which is weaker
+#     than the benchmark's own four-judge panel. Phase 5 exists to measure judge
+#     reliability against human labels, so this directly weakens the headline result.
+#   * One repetition fewer than specified (2 rather than 3), which widens the
+#     within-scenario variance estimate. Decoding is non-deterministic, so repetitions
+#     are the only handle on that variance.
+
+design_id: reduced-20x2
+authorised: 2026-10-08
+reason: only $5 of the stated $50 cap was funded
+
+scope:
+  n_scenarios: 20          # of 40
+  variants: [mandated, incentivized]
+  repetitions: 2           # of 3 specified
+  # 20 scenarios x 2 variants x 2 reps x 4 models = 320 main runs
+  agent_models: [sonnet-5.5, haiku-5.5, gpt-6-sol, gpt-6-luna]
+  primary_reasoning_mode: "on"
+
+# The reasoning on/off comparison the author asked for, kept because it is cheap: one
+# small model re-run with reasoning disabled. 20 x 2 x 2 = 80 extra runs at the measured
+# small-tier rate. sonnet-5.5 is ineligible (it cannot disable reasoning at all).
+reasoning_comparison:
+  model: haiku-5.5
+  modes: ["on", "off"]
+  n_runs: 80
+
+judges:
+  models: [haiku-5.5, gpt-6-luna]
+  use_batch_api: true      # exactly 50% off; authorised by the author
+  note: >-
+    Downgraded from opus-5.5 + gpt-6.1-sol purely for budget. Neither judge is also
+    scored as an agent in a way that creates same-model judging for the mid tier, but
+    both ARE agent models here, so some judgments are same-model as well as same-family.
+    That is worse than the original slate and must be reported: every judge-dependent
+    result is already reported twice (all judgments, and cross-family only), and
+    same-model judgments must additionally be flagged.
+
+# Scenario selection rule, fixed BEFORE any outcome was examined.
+#
+# Stratified by Docker base image, which is an objective property of the shipped
+# scenario (20 use debian:bullseye-slim, 20 use python:3.13-slim) and is fixed by the
+# benchmark rather than by anything we measured. 10 drawn from each stratum with a
+# documented seed, so the draw is reproducible and cannot be tuned on results.
+#
+# Selection is deliberately NOT based on domain, difficulty, observed violation rate, or
+# anything else derived from a run. The prompt forbids tuning design choices on the runs
+# they are evaluated on.
+selection:
+  method: stratified_by_base_image
+  strata: [debian:bullseye-slim, "python:3.13-slim"]
+  per_stratum: 10
+  seed: 20261008
+  rng: "python random.Random(seed).sample(sorted(stratum), 10)"

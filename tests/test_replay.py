@@ -53,6 +53,15 @@ def _footer(turns, actions, termination="task_complete"):
     }
 
 
+def _spec():
+    from caaef.config import Model
+    from caaef.runner import RunSpec
+    m = Model(name="m", id="p/m", first_party_id="m", family="f",
+              price_in=1.0, price_out=1.0, price_cache_read=0.1)
+    return RunSpec(scenario="S", variant="mandated", model=m, repetition=1,
+                   reasoning_mode="off")
+
+
 def _write(tmp_path: Path, records) -> Path:
     p = tmp_path / "t.jsonl"
     p.write_text("\n".join(json.dumps(r) for r in records) + "\n")
@@ -155,3 +164,70 @@ def test_file_without_header_is_rejected(tmp_path):
     p = _write(tmp_path, [_bash(1, 1, "ls")])
     with pytest.raises(ValueError, match="does not begin with a header"):
         load_trace(p)
+
+
+# -- resume semantics --------------------------------------------------------------
+
+def test_already_done_requires_a_footer(tmp_path, monkeypatch):
+    """A trace truncated by a crash must be redone, not mistaken for finished."""
+    import caaef.runner as R
+    monkeypatch.setattr(R, "TRACES_DIR", tmp_path)
+    spec = _spec()
+    p = R.trace_path(spec); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(HEADER) + "\n" + json.dumps(_bash(1, 1, "ls")) + "\n")
+    assert not R.already_done(spec)
+
+
+def test_already_done_retries_zero_action_api_error(tmp_path, monkeypatch):
+    """An API failure that produced no action holds no data and must be retried.
+
+    This is the case that initially let two credit-failed runs be skipped as complete.
+    """
+    import caaef.runner as R
+    monkeypatch.setattr(R, "TRACES_DIR", tmp_path)
+    spec = _spec()
+    p = R.trace_path(spec); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(json.dumps(HEADER) + "\n" + json.dumps(_footer(0, 0, "api_error")) + "\n")
+    assert not R.already_done(spec)
+
+
+def test_already_done_keeps_truncated_run_with_actions(tmp_path, monkeypatch):
+    """A truncated run that DID act is real data: keep it, marked, do not redo."""
+    import caaef.runner as R
+    monkeypatch.setattr(R, "TRACES_DIR", tmp_path)
+    spec = _spec()
+    p = R.trace_path(spec); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(
+        json.dumps(HEADER) + "\n"
+        + json.dumps(_bash(1, 1, "ls")) + "\n"
+        + json.dumps(_footer(1, 1, "step_limit")) + "\n"
+    )
+    assert R.already_done(spec)
+
+
+def test_already_done_keeps_api_error_that_had_acted(tmp_path, monkeypatch):
+    """An API error after real work is partial data worth keeping."""
+    import caaef.runner as R
+    monkeypatch.setattr(R, "TRACES_DIR", tmp_path)
+    spec = _spec()
+    p = R.trace_path(spec); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(
+        json.dumps(HEADER) + "\n"
+        + json.dumps(_bash(1, 1, "ls")) + "\n"
+        + json.dumps(_footer(1, 1, "api_error")) + "\n"
+    )
+    assert R.already_done(spec)
+
+
+def test_already_done_always_retries_sandbox_error(tmp_path, monkeypatch):
+    """A sandbox_error is a harness failure, so retry even if the agent had acted."""
+    import caaef.runner as R
+    monkeypatch.setattr(R, "TRACES_DIR", tmp_path)
+    spec = _spec()
+    p = R.trace_path(spec); p.parent.mkdir(parents=True, exist_ok=True)
+    p.write_text(
+        json.dumps(HEADER) + "\n"
+        + json.dumps(_bash(1, 1, "cat weird.md")) + "\n"
+        + json.dumps(_footer(1, 1, "sandbox_error")) + "\n"
+    )
+    assert not R.already_done(spec)

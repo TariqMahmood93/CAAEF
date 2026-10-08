@@ -59,7 +59,18 @@ class SandboxError(RuntimeError):
 
 
 def _run(cmd: list[str], timeout: int = DOCKER_OP_TIMEOUT_S) -> subprocess.CompletedProcess:
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)
+    """Run a docker command, decoding output defensively.
+
+    `errors="replace"` is required, not cosmetic. Scenario data files are not guaranteed
+    to be UTF-8 -- `Ai-Social-Moderation-System` ships a report containing cp1252 smart
+    quotes -- and a strict decode raises UnicodeDecodeError, which killed the whole run
+    with a sandbox_error before the agent had done anything wrong. The agent should see
+    the output with the undecodable bytes replaced, exactly as any shell would, rather
+    than have its run destroyed by the harness.
+    """
+    return subprocess.run(
+        cmd, capture_output=True, text=True, errors="replace", timeout=timeout
+    )
 
 
 @dataclass

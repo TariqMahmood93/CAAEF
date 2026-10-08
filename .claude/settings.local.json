@@ -10,7 +10,10 @@
       "Bash(git add *)",
       "Bash(git -c user.name=Claude -c user.email=noreply@anthropic.com commit -q -m 'Phase 0 \\(part 2\\): record author decisions and provider API probe results *)",
       "Bash(curl -s https://openrouter.ai/api/v1/models)",
-      "Bash(python3 -c ' *)"
+      "Bash(python3 -c ' *)",
+      "Bash(pkill -f run_phase2.py)",
+      "Bash(xargs -r docker rm -f)",
+      "Bash(.venv/bin/python -)"
     ]
   }
 }
