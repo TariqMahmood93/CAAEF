@@ -6,3 +6,5 @@ results/raw/
 .build/
 traces/
 *.tar
+annotation/data.json
+annotation/index.html
