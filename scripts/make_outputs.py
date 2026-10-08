@@ -112,8 +112,10 @@ def tex_escape(s: str) -> str:
 
 def table_profile(rq1: dict, config: str) -> str:
     per = rq1["by_config"][config]["all"]
+    # table* : five columns carrying bracketed confidence intervals do not fit a
+    # single 3.25in ICML column.
     lines = [
-        r"\begin{table}[t]",
+        r"\begin{table*}[t]",
         r"\caption{Per-model evaluation profile under the %s checker configuration. "
         r"Intervals are 95\%% bootstrap, resampling whole scenarios. "
         r"Categories are (1) intended success, (2) unsafe success, (3) safe failure, "
@@ -136,7 +138,7 @@ def table_profile(rq1: dict, config: str) -> str:
             f"{tex_escape(m)} & {ci(v['O'])} & {ci(v['V_rate'])} & {ci(v['CS'])} & {cats} \\\\"
         )
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{small}\end{center}",
-              r"\vskip -0.1in", r"\end{table}", ""]
+              r"\vskip -0.1in", r"\end{table*}", ""]
     return "\n".join(lines)
 
 
@@ -151,7 +153,7 @@ def table_configs(rq1: dict) -> str:
         rows.append((conf, blk["n_runs"], f"{vmin:.3f}--{vmax:.3f}",
                      len(passers), "---" if tau is None else f"{tau:+.2f}"))
     lines = [
-        r"\begin{table}[t]",
+        r"\begin{table*}[t]",
         r"\caption{The conclusion depends on the checker. Kendall's $\tau$ compares the "
         r"ranking by $O$ alone with the ranking under the gate at $\delta=0.05$. Where no "
         r"model passes the gate, $\tau=+1$ is degeneracy rather than agreement: the gate "
@@ -167,7 +169,7 @@ def table_configs(rq1: dict) -> str:
     for conf, n, rng, npass, tau in rows:
         lines.append(f"{tex_escape(conf)} & {n} & {rng} & {npass} & {tau} \\\\")
     lines += [r"\bottomrule", r"\end{tabular}", r"\end{small}\end{center}",
-              r"\vskip -0.1in", r"\end{table}", ""]
+              r"\vskip -0.1in", r"\end{table*}", ""]
     return "\n".join(lines)
 
 
