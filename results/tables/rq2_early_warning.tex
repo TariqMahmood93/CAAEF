@@ -1,0 +1,22 @@
+\begin{table}[t]
+\caption{RQ2: the distance score $D$ does not give early warning. AUROC is computed on prefixes strictly before the first violating action. The realised false-alarm rate exceeds its conformal target by a factor of about 2.8, indicating that exchangeability does not hold across scenarios.}
+\label{tab:rq2}
+\vskip 0.1in
+\begin{center}\begin{small}
+\begin{tabular}{lc}
+\toprule
+Quantity & Value \\
+\midrule
+AUROC, $D$ & 0.312 \\
+AUROC, action count & 0.218 \\
+AUROC, keyword rule & 0.516 \\
+\midrule
+Detected before violation, target 5\% & 2/32 \\
+Realised false-alarm rate, target 5\% & 0.143 \\
+Detected before violation, target 10\% & 5/32 \\
+Realised false-alarm rate, target 10\% & 0.270 \\
+\bottomrule
+\end{tabular}
+\end{small}\end{center}
+\vskip -0.1in
+\end{table}

@@ -1,0 +1,942 @@
+{
+  "_provenance": {
+    "generated": "scripts/make_outputs.py",
+    "inputs": [
+      "results/rq1.json",
+      "results/rq2.json",
+      "results/judgments.jsonl",
+      "results/objective.jsonl",
+      "traces/*.jsonl"
+    ],
+    "note": "Every value is read from an analysis output, never recomputed here, so a number in the paper cannot drift from the number in a table."
+  },
+  "design": {
+    "n_scenarios": 20,
+    "n_runs_scored": 297,
+    "scenarios_of_40": 20,
+    "repetitions_complete": 1,
+    "source": "config/design.yaml; notes/phase2.md"
+  },
+  "rq1": {
+    "rules_state": {
+      "n_runs": 297,
+      "kendall_tau_O_vs_gate": -0.6,
+      "models_passing_gate_delta_0.05": [
+        "haiku-5.5",
+        "sonnet-5.5"
+      ],
+      "per_model": {
+        "gpt-6-luna": {
+          "O": {
+            "point": 0.15217391304347827,
+            "ci_lo": 0.0,
+            "ci_hi": 0.34220647773279206,
+            "n_scenarios": 14,
+            "n_obs": 46,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.125,
+            "ci_lo": 0.015625,
+            "ci_hi": 0.27586206896551724,
+            "n_scenarios": 20,
+            "n_obs": 64,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.96875,
+            "ci_lo": 0.9272222222222223,
+            "ci_hi": 0.9970588235294118,
+            "n_scenarios": 20,
+            "n_obs": 64,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.0,
+            "ci_lo": 0.0,
+            "ci_hi": 0.0,
+            "n_scenarios": 20,
+            "n_obs": 64,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 5,
+            "2": 2,
+            "3": 33,
+            "4": 6
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 18
+        },
+        "gpt-6-sol": {
+          "O": {
+            "point": 0.15217391304347827,
+            "ci_lo": 0.0,
+            "ci_hi": 0.3684496567505716,
+            "n_scenarios": 14,
+            "n_obs": 46,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.09375,
+            "ci_lo": 0.015151515151515152,
+            "ci_hi": 0.1935483870967742,
+            "n_scenarios": 20,
+            "n_obs": 64,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9776041666666666,
+            "ci_lo": 0.95,
+            "ci_hi": 0.996969696969697,
+            "n_scenarios": 20,
+            "n_obs": 64,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.0,
+            "ci_lo": 0.0,
+            "ci_hi": 0.0,
+            "n_scenarios": 20,
+            "n_obs": 64,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 5,
+            "2": 2,
+            "3": 35,
+            "4": 4
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 18
+        },
+        "haiku-5.5": {
+          "O": {
+            "point": 0.05405405405405406,
+            "ci_lo": 0.0,
+            "ci_hi": 0.17647058823529413,
+            "n_scenarios": 14,
+            "n_obs": 74,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.028846153846153848,
+            "ci_lo": 0.0,
+            "ci_hi": 0.08823529411764706,
+            "n_scenarios": 20,
+            "n_obs": 104,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9937499999999999,
+            "ci_lo": 0.9808823529411765,
+            "ci_hi": 1.0,
+            "n_scenarios": 20,
+            "n_obs": 104,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.0,
+            "ci_lo": 0.0,
+            "ci_hi": 0.0,
+            "n_scenarios": 20,
+            "n_obs": 104,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 4,
+            "3": 67,
+            "4": 3
+          },
+          "outcome_only_success_but_V1": 0,
+          "n_O_missing": 30
+        },
+        "sonnet-5.5": {
+          "O": {
+            "point": 0.06521739130434782,
+            "ci_lo": 0.0,
+            "ci_hi": 0.18181818181818182,
+            "n_scenarios": 14,
+            "n_obs": 46,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.03076923076923077,
+            "ci_lo": 0.0,
+            "ci_hi": 0.09523809523809523,
+            "n_scenarios": 20,
+            "n_obs": 65,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9897435897435899,
+            "ci_lo": 0.9682539682539683,
+            "ci_hi": 1.0,
+            "n_scenarios": 20,
+            "n_obs": 65,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.0,
+            "ci_lo": 0.0,
+            "ci_hi": 0.0,
+            "n_scenarios": 20,
+            "n_obs": 65,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 3,
+            "3": 41,
+            "4": 2
+          },
+          "outcome_only_success_but_V1": 0,
+          "n_O_missing": 19
+        }
+      }
+    },
+    "judge_A": {
+      "n_runs": 200,
+      "kendall_tau_O_vs_gate": 0.6,
+      "models_passing_gate_delta_0.05": [
+        "gpt-6-luna",
+        "gpt-6-sol",
+        "haiku-5.5"
+      ],
+      "per_model": {
+        "gpt-6-luna": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.0,
+            "ci_lo": 0.0,
+            "ci_hi": 0.0,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9737202380952382,
+            "ci_lo": 0.9408035714285715,
+            "ci_hi": 0.996875,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.2,
+            "ci_lo": 0.025,
+            "ci_hi": 0.45,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 5,
+            "3": 23
+          },
+          "outcome_only_success_but_V1": 0,
+          "n_O_missing": 12
+        },
+        "gpt-6-sol": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.025,
+            "ci_lo": 0.0,
+            "ci_hi": 0.075,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9662500000000002,
+            "ci_lo": 0.9370833333333334,
+            "ci_hi": 0.9908333333333335,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.225,
+            "ci_lo": 0.025,
+            "ci_hi": 0.475,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 5,
+            "3": 22,
+            "4": 1
+          },
+          "outcome_only_success_but_V1": 0,
+          "n_O_missing": 12
+        },
+        "haiku-5.5": {
+          "O": {
+            "point": 0.07142857142857142,
+            "ci_lo": 0.0,
+            "ci_hi": 0.21428571428571427,
+            "n_scenarios": 14,
+            "n_obs": 56,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.0375,
+            "ci_lo": 0.0,
+            "ci_hi": 0.075,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.984375,
+            "ci_lo": 0.9725000000000001,
+            "ci_hi": 0.994375,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.025,
+            "ci_lo": 0.0,
+            "ci_hi": 0.05625,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 3,
+            "2": 1,
+            "3": 50,
+            "4": 2
+          },
+          "outcome_only_success_but_V1": 1,
+          "n_O_missing": 24
+        },
+        "sonnet-5.5": {
+          "O": {
+            "point": 0.10714285714285714,
+            "ci_lo": 0.0,
+            "ci_hi": 0.2857142857142857,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.1,
+            "ci_lo": 0.0,
+            "ci_hi": 0.25,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.945,
+            "ci_lo": 0.8658333333333335,
+            "ci_hi": 1.0,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.125,
+            "ci_lo": 0.0,
+            "ci_hi": 0.35,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 2,
+            "2": 1,
+            "3": 24,
+            "4": 1
+          },
+          "outcome_only_success_but_V1": 1,
+          "n_O_missing": 12
+        }
+      }
+    },
+    "judge_B": {
+      "n_runs": 200,
+      "kendall_tau_O_vs_gate": 1.0,
+      "models_passing_gate_delta_0.05": [],
+      "per_model": {
+        "gpt-6-luna": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.075,
+            "ci_lo": 0.0,
+            "ci_hi": 0.15,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9509424603174603,
+            "ci_lo": 0.9183308531746032,
+            "ci_hi": 0.9786217757936508,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.375,
+            "ci_lo": 0.125,
+            "ci_hi": 0.675,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 5,
+            "3": 21,
+            "4": 2
+          },
+          "outcome_only_success_but_V1": 0,
+          "n_O_missing": 12
+        },
+        "gpt-6-sol": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.1,
+            "ci_lo": 0.0,
+            "ci_hi": 0.225,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9455844155844156,
+            "ci_lo": 0.9094017857142856,
+            "ci_hi": 0.9772619047619047,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.375,
+            "ci_lo": 0.1,
+            "ci_hi": 0.7,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 5,
+            "3": 21,
+            "4": 2
+          },
+          "outcome_only_success_but_V1": 0,
+          "n_O_missing": 12
+        },
+        "haiku-5.5": {
+          "O": {
+            "point": 0.07142857142857142,
+            "ci_lo": 0.0,
+            "ci_hi": 0.21428571428571427,
+            "n_scenarios": 14,
+            "n_obs": 56,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.2,
+            "ci_lo": 0.07468750000000028,
+            "ci_hi": 0.35,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9511160714285716,
+            "ci_lo": 0.9173776041666667,
+            "ci_hi": 0.9812202380952382,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.1,
+            "ci_lo": 0.0,
+            "ci_hi": 0.25,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 1,
+            "2": 3,
+            "3": 43,
+            "4": 9
+          },
+          "outcome_only_success_but_V1": 3,
+          "n_O_missing": 24
+        },
+        "sonnet-5.5": {
+          "O": {
+            "point": 0.10714285714285714,
+            "ci_lo": 0.0,
+            "ci_hi": 0.2857142857142857,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.3,
+            "ci_lo": 0.125,
+            "ci_hi": 0.5,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.8794642857142858,
+            "ci_lo": 0.8005357142857144,
+            "ci_hi": 0.9428571428571428,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.3,
+            "ci_lo": 0.1,
+            "ci_hi": 0.55,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "2": 3,
+            "3": 21,
+            "4": 4
+          },
+          "outcome_only_success_but_V1": 3,
+          "n_O_missing": 12
+        }
+      }
+    },
+    "full": {
+      "n_runs": 200,
+      "kendall_tau_O_vs_gate": 1.0,
+      "models_passing_gate_delta_0.05": [],
+      "per_model": {
+        "gpt-6-luna": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.175,
+            "ci_lo": 0.05,
+            "ci_hi": 0.325,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.917371031746032,
+            "ci_lo": 0.8716361607142856,
+            "ci_hi": 0.9578182043650794,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.4,
+            "ci_lo": 0.15,
+            "ci_hi": 0.7,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 3,
+            "2": 2,
+            "3": 19,
+            "4": 4
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 12
+        },
+        "gpt-6-sol": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.225,
+            "ci_lo": 0.1,
+            "ci_hi": 0.375,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9008225108225109,
+            "ci_lo": 0.8422616341991342,
+            "ci_hi": 0.9487878787878788,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.45,
+            "ci_lo": 0.15,
+            "ci_hi": 0.775,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 3,
+            "2": 2,
+            "3": 18,
+            "4": 5
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 12
+        },
+        "haiku-5.5": {
+          "O": {
+            "point": 0.07142857142857142,
+            "ci_lo": 0.0,
+            "ci_hi": 0.21428571428571427,
+            "n_scenarios": 14,
+            "n_obs": 56,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.1625,
+            "ci_lo": 0.05,
+            "ci_hi": 0.3,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9592410714285716,
+            "ci_lo": 0.9282723214285714,
+            "ci_hi": 0.9868452380952382,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.1,
+            "ci_lo": 0.0,
+            "ci_hi": 0.25,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 1,
+            "2": 3,
+            "3": 46,
+            "4": 6
+          },
+          "outcome_only_success_but_V1": 3,
+          "n_O_missing": 24
+        },
+        "sonnet-5.5": {
+          "O": {
+            "point": 0.10714285714285714,
+            "ci_lo": 0.0,
+            "ci_hi": 0.2857142857142857,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.3,
+            "ci_lo": 0.125,
+            "ci_hi": 0.5,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.8852976190476192,
+            "ci_lo": 0.8033318452380953,
+            "ci_hi": 0.950358630952381,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.275,
+            "ci_lo": 0.05,
+            "ci_hi": 0.55,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 1,
+            "2": 2,
+            "3": 20,
+            "4": 5
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 12
+        }
+      }
+    },
+    "full_cross_family": {
+      "n_runs": 200,
+      "kendall_tau_O_vs_gate": 1.0,
+      "models_passing_gate_delta_0.05": [],
+      "per_model": {
+        "gpt-6-luna": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.125,
+            "ci_lo": 0.0,
+            "ci_hi": 0.275,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9387202380952381,
+            "ci_lo": 0.8897313988095238,
+            "ci_hi": 0.9787544642857143,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.2,
+            "ci_lo": 0.025,
+            "ci_hi": 0.45,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 3,
+            "2": 2,
+            "3": 20,
+            "4": 3
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 12
+        },
+        "gpt-6-sol": {
+          "O": {
+            "point": 0.17857142857142858,
+            "ci_lo": 0.0,
+            "ci_hi": 0.39285714285714285,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.175,
+            "ci_lo": 0.05,
+            "ci_hi": 0.325,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9304166666666667,
+            "ci_lo": 0.8733333333333334,
+            "ci_hi": 0.9745833333333334,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.225,
+            "ci_lo": 0.025,
+            "ci_hi": 0.475,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 3,
+            "2": 2,
+            "3": 18,
+            "4": 5
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 12
+        },
+        "haiku-5.5": {
+          "O": {
+            "point": 0.07142857142857142,
+            "ci_lo": 0.0,
+            "ci_hi": 0.21428571428571427,
+            "n_scenarios": 14,
+            "n_obs": 56,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.1625,
+            "ci_lo": 0.05,
+            "ci_hi": 0.3,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.9592410714285716,
+            "ci_lo": 0.9282723214285714,
+            "ci_hi": 0.9868452380952382,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.1,
+            "ci_lo": 0.0,
+            "ci_hi": 0.25,
+            "n_scenarios": 20,
+            "n_obs": 80,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 1,
+            "2": 3,
+            "3": 46,
+            "4": 6
+          },
+          "outcome_only_success_but_V1": 3,
+          "n_O_missing": 24
+        },
+        "sonnet-5.5": {
+          "O": {
+            "point": 0.10714285714285714,
+            "ci_lo": 0.0,
+            "ci_hi": 0.2857142857142857,
+            "n_scenarios": 14,
+            "n_obs": 28,
+            "n_resamples": 10000
+          },
+          "V_rate": {
+            "point": 0.3,
+            "ci_lo": 0.125,
+            "ci_hi": 0.5,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "CS": {
+            "point": 0.8852976190476192,
+            "ci_lo": 0.8033318452380953,
+            "ci_hi": 0.950358630952381,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "SC": {
+            "point": 0.275,
+            "ci_lo": 0.05,
+            "ci_hi": 0.55,
+            "n_scenarios": 20,
+            "n_obs": 40,
+            "n_resamples": 10000
+          },
+          "categories": {
+            "1": 1,
+            "2": 2,
+            "3": 20,
+            "4": 5
+          },
+          "outcome_only_success_but_V1": 2,
+          "n_O_missing": 12
+        }
+      }
+    }
+  },
+  "rq2": {
+    "auroc": {
+      "D": 0.31200396825396826,
+      "action_count_baseline": 0.21800595238095238,
+      "keyword_baseline": 0.515625
+    },
+    "per_target_far": {
+      "0.05": {
+        "threshold": 1.224744871391589,
+        "target_far": 0.05,
+        "realised_far": 0.14285714285714285,
+        "n_eval_compliant": 63,
+        "detected_before_first_violation": 2,
+        "n_violating_localised": 32,
+        "detection_share": 0.0625,
+        "median_lead_actions": 3.0,
+        "keyword_baseline_detection_share": 0.03125
+      },
+      "0.1": {
+        "threshold": 0.8454679489967102,
+        "target_far": 0.1,
+        "realised_far": 0.2698412698412698,
+        "n_eval_compliant": 63,
+        "detected_before_first_violation": 5,
+        "n_violating_localised": 32,
+        "detection_share": 0.15625,
+        "median_lead_actions": 2,
+        "keyword_baseline_detection_share": 0.03125
+      }
+    },
+    "n_violating_localised": 32,
+    "n_compliant": 134
+  },
+  "rq3_u_informative": "PENDING AUDIT \u2014 requires human consensus labels",
+  "rq4_component_ablation": "PENDING AUDIT \u2014 precision/recall need human labels",
+  "rq5_gate_under_checker_error": "PENDING AUDIT \u2014 alpha and beta are estimated from the audit",
+  "not_computable": {
+    "benchmark_severity_agreement": "The benchmark's own severity>=3 labels cover 12 models, none of which is in our slate, so no run overlaps and the agreement cannot be computed."
+  },
+  "caveats": [
+    "20 of 40 scenarios: every scenario-clustered interval is correspondingly wider.",
+    "Repetition 1 is complete; repetition 2 is partial and NOT pooled here.",
+    "With 4 models from 2 families, any ranking is weak evidence.",
+    "Judge figures are sampled, not greedy: temperature 0 is unachievable.",
+    "O is missing for 6 of 20 scenarios, which have no agreed KPI rule."
+  ]
+}
