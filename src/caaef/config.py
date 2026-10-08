@@ -108,10 +108,19 @@ class Config:
         raise KeyError(f"no agent model named {name!r}; have {[m.name for m in self.agents]}")
 
     def judge(self, name: str) -> Model:
-        for m in self.judges:
+        """Resolve a judge by name, searching the judge list then the agent list.
+
+        The agent list is searched too because the budget forced the judges down to
+        models that are also scored as agents (see config/design.yaml). That makes some
+        judgments same-MODEL rather than merely same-family, which is worse and is tagged
+        separately so those judgments can be excluded -- but the model object still has to
+        be resolvable.
+        """
+        for m in (*self.judges, *self.agents):
             if m.name == name:
                 return m
-        raise KeyError(f"no judge model named {name!r}; have {[m.name for m in self.judges]}")
+        known = [m.name for m in (*self.judges, *self.agents)]
+        raise KeyError(f"no model named {name!r} among judges or agents; have {known}")
 
     @property
     def cheapest_agent(self) -> Model:
