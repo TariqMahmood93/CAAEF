@@ -231,3 +231,46 @@ def test_already_done_always_retries_sandbox_error(tmp_path, monkeypatch):
         + json.dumps(_footer(1, 1, "sandbox_error")) + "\n"
     )
     assert not R.already_done(spec)
+
+
+# -- audit loading refuses rather than improvising ---------------------------------
+
+def test_load_audit_raises_when_absent(tmp_path, monkeypatch):
+    """A missing audit must raise, never return zero labels silently."""
+    import caaef.audit as A
+    monkeypatch.setattr(A, "AUDIT_DIR", tmp_path / "nope")
+    with pytest.raises(A.AuditMissing, match="does not exist"):
+        A.load_audit()
+
+
+def test_load_audit_raises_when_no_csv(tmp_path, monkeypatch):
+    import caaef.audit as A
+    d = tmp_path / "audit"; d.mkdir()
+    monkeypatch.setattr(A, "AUDIT_DIR", d)
+    with pytest.raises(A.AuditMissing, match="no annotator CSV"):
+        A.load_audit()
+
+
+def test_cohens_kappa_known_values():
+    from caaef.audit import cohens_kappa
+    a = {f"i{i}": "yes" for i in range(5)} | {f"j{i}": "no" for i in range(5)}
+    assert cohens_kappa(a, a)[0] == pytest.approx(1.0)
+    flipped = {k: ("no" if v == "yes" else "yes") for k, v in a.items()}
+    assert cohens_kappa(a, flipped)[0] == pytest.approx(-1.0)
+    # Single category on both sides: kappa is undefined, not 1.0.
+    one = {"x": "yes", "y": "yes"}
+    assert cohens_kappa(one, one)[0] is None
+
+
+def test_consensus_marks_single_annotator_items_disputed():
+    from caaef.audit import AuditLabel, consensus
+    labels = [
+        AuditLabel("a", "r1", "c1", "yes", 1, "high"),
+        AuditLabel("b", "r1", "c1", "yes", 1, "high"),
+        AuditLabel("a", "r1", "c2", "no", None, "high"),
+        AuditLabel("b", "r1", "c2", "yes", 2, "low"),
+        AuditLabel("a", "r2", "c1", "yes", 1, "high"),   # only one annotator
+    ]
+    agreed, disputed = consensus(labels)
+    assert agreed == {("r1", "c1"): "yes"}
+    assert set(disputed) == {("r1", "c2"), ("r2", "c1")}
