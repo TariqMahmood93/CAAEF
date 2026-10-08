@@ -259,7 +259,18 @@ class Client:
             if resp.status_code >= 400:
                 raise LLMError(f"HTTP {resp.status_code} from {model.id}: {resp.text[:600]}")
 
-            data = resp.json()
+            # Decode defensively. A malformed or non-UTF-8 response body would otherwise
+            # raise UnicodeDecodeError / JSONDecodeError straight out of complete(),
+            # which the runner catches as a sandbox_error and uses to kill the whole run.
+            # A bad response body is a transient transport problem: retry it.
+            try:
+                data = resp.json()
+            except (UnicodeDecodeError, json.JSONDecodeError, ValueError) as exc:
+                last_err = f"undecodable response body: {type(exc).__name__}: {exc}"
+                if attempt == MAX_ATTEMPTS:
+                    break
+                time.sleep(BACKOFF_BASE_S ** attempt)
+                continue
             # OpenRouter can return 200 with an error body.
             if data.get("error"):
                 msg = str(data["error"].get("message", data["error"]))[:300]

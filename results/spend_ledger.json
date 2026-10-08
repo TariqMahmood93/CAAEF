@@ -1,30 +1,30 @@
 {
   "by_model": {
     "anthropic/claude-haiku-5.5": {
-      "calls": 127,
-      "completion_tokens": 65222,
-      "prompt_tokens": 421429,
-      "usd": 0.07475389999999997
+      "calls": 519,
+      "completion_tokens": 233968,
+      "prompt_tokens": 1949415,
+      "usd": 0.3119254999999994
     },
     "anthropic/claude-sonnet-5.5": {
-      "calls": 81,
-      "completion_tokens": 24460,
-      "prompt_tokens": 217371,
-      "usd": 0.6793420000000002
+      "calls": 255,
+      "completion_tokens": 74314,
+      "prompt_tokens": 669425,
+      "usd": 2.081990000000001
     },
     "openai/gpt-6-luna": {
-      "calls": 101,
-      "completion_tokens": 38509,
-      "prompt_tokens": 239585,
-      "usd": 0.030695180000000002
+      "calls": 328,
+      "completion_tokens": 124907,
+      "prompt_tokens": 1333029,
+      "usd": 0.13795184999999996
     },
     "openai/gpt-6-sol": {
-      "calls": 97,
-      "completion_tokens": 22809,
-      "prompt_tokens": 214780,
-      "usd": 0.4688785999999999
+      "calls": 317,
+      "completion_tokens": 85383,
+      "prompt_tokens": 875492,
+      "usd": 1.728541899999999
     }
   },
-  "calls": 406,
-  "total_usd": 1.2536696799999993
+  "calls": 1419,
+  "total_usd": 4.260409250000001
 }

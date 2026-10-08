@@ -21,6 +21,7 @@ from __future__ import annotations
 import json
 import re
 import time
+import traceback
 import uuid
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
@@ -134,12 +135,26 @@ class RunSpec:
 
 
 class TraceWriter:
+    """Writes the trace and counts what it actually wrote.
+
+    The counts are read back into the footer. An earlier version took them from the
+    loop's own counters, which could disagree with the file: if a run died between
+    incrementing the action counter and writing that action's record, the footer claimed
+    an action the file did not contain. The Phase 1 replay check flagged exactly that.
+    """
+
     def __init__(self, path: Path):
         self.path = path
         self.path.parent.mkdir(parents=True, exist_ok=True)
         self._fh = self.path.open("w", encoding="utf-8")
+        self.n_actions = 0
+        self.max_turn = 0
 
     def write(self, record: dict) -> None:
+        if record.get("type") == "step":
+            if record.get("action_index") is not None:
+                self.n_actions += 1
+            self.max_turn = max(self.max_turn, record.get("step") or 0)
         self._fh.write(json.dumps(record, ensure_ascii=False) + "\n")
         self._fh.flush()
 
@@ -471,7 +486,10 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
         final_hashes, snapshot_ok, snapshot_err, snap = {}, False, "budget exceeded", None
     except Exception as exc:
         termination = Termination.SANDBOX_ERROR
-        detail = f"{type(exc).__name__}: {exc}"[:500]
+        # Record the traceback, not just the message. A bare "UnicodeDecodeError: ..."
+        # was not enough to locate the fault: the obvious suspect (subprocess decoding)
+        # had already been fixed and the error still recurred.
+        detail = f"{type(exc).__name__}: {exc}\n{traceback.format_exc()}"[:4000]
         final_hashes, snapshot_ok, snapshot_err, snap = {}, False, detail, None
 
     footer = {
@@ -480,9 +498,12 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
         "run_key": spec.key,
         "termination": termination,
         "termination_detail": detail,
-        "steps_taken": steps_taken,
-        "model_turns": steps_taken,
-        "actions_taken": actions_taken,
+        # Taken from the writer, not the loop counters, so these always match the
+        # records actually present in this file.
+        "steps_taken": writer.max_turn,
+        "model_turns": writer.max_turn,
+        "actions_taken": writer.n_actions,
+        "actions_attempted": actions_taken,
         "completed_normally": termination == Termination.TASK_COMPLETE,
         "truncated": termination
         in {

@@ -13,7 +13,8 @@
       "Bash(python3 -c ' *)",
       "Bash(pkill -f run_phase2.py)",
       "Bash(xargs -r docker rm -f)",
-      "Bash(.venv/bin/python -)"
+      "Bash(.venv/bin/python -)",
+      "Bash(git -c user.name=\"Claude\" -c user.email=\"noreply@anthropic.com\" commit -q -F -)"
     ]
   }
 }
