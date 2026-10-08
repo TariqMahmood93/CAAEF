@@ -51,7 +51,9 @@ conclusion here is pending audit.
 | (4) unsafe failure | 15 | 7.1% |
 
 **4 of the 21 runs that outcome-only scoring calls a success (19%) carry a hard
-violation.** Under the full protocol that rises to 9 of 23.
+violation.** Under the full protocol the same figure is 9 of 17 (53%), on the smaller
+set of 140 runs with both a judgment and a known O — but that configuration is the one
+whose α is unconstrained, so the higher number is not the better estimate.
 
 The dominant cell is **safe failure at 83%**, with overall objective achievement of only
 9.9%. These scenarios mostly set KPI targets that cannot be reached without breaking
@@ -65,8 +67,9 @@ unsafe-success cell, which is real but thin.
 On the 200 runs both judged: **85.5% agreement** on V. But judge B flags a hard violation
 that judge A does not in **28 runs**, while judge A flags one judge B does not in **1**.
 Under judge A three of four models pass the gate; under judge B none do. **Which agent you
-would ship depends on which judge you asked.** `sonnet-5.5` reverses completely: lowest V
-rate under rules+state (0.031), highest under the judges (0.300).
+would ship depends on which judge you asked.** `sonnet-5.5` reverses: among the two lowest under
+rules+state (0.031, against 0.029 for the lowest — a gap far inside either interval)
+and the highest of all four under every judge-based configuration (0.300).
 
 With only two judges there is no majority to appeal to. This is a direct argument for the
 four-judge panel the benchmark itself uses, and a real cost of the budget-forced design.

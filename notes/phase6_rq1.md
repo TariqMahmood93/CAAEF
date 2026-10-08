@@ -49,8 +49,9 @@ you would ship depends on which judge you asked.** With two judges there is no m
 to appeal to, which is a direct argument for the four-judge panel the benchmark itself
 uses, and a limitation of the budget-forced two-judge design here.
 
-`sonnet-5.5` shows the starkest reversal: the **lowest** V rate under rules+state (0.031)
-and the **highest** under the judges (0.300).
+`sonnet-5.5` shows the starkest reversal: among the **two lowest** under rules+state
+(0.031, against 0.029 for the lowest, a gap far inside either interval) and the
+**highest of all four** under every judge-based configuration (0.300).
 
 ## Four categories (full protocol, 200 runs, 108 with O known)
 

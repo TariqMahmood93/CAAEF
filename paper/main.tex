@@ -331,25 +331,32 @@ Under the \textsc{full} protocol, $\tau=+1.00$. This is not agreement; it is deg
 
 That degeneracy is not an artefact of our analysis; it is equation~\eqref{eq:observed} appearing in data. Section~\ref{sec:model} argues that a tolerance below the checker's false-positive rate cannot be enforced on raw output. Either these agents genuinely violate constraints in $16$--$30\%$ of runs, or $\alpha$ is of that order. \textbf{Those two possibilities cannot be separated without the audit}, which is exactly why the audit is load-bearing rather than a refinement. Every gate conclusion reported here is provisional on it.
 
-Figure~\ref{fig:vrate} shows the same thing per agent. The measured violation rate moves by a factor of three to ten across configurations, and the ordering of agents is not stable: one agent has the \emph{lowest} rate under \textsc{rules+state} ($0.031$) and the \emph{highest} under the judges ($0.300$).
-
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.86\textwidth]{figures/v_rate_by_config}
-\caption{Hard-violation rate per agent under each checker configuration, with $95\%$ bootstrap intervals resampling whole scenarios. The dashed line is the gate tolerance $\delta=0.05$. The agents are ordered consistently; the \emph{ranking} between them is not stable across configurations, and under the judge-based configurations no agent passes.}
-\label{fig:vrate}
-\end{figure*}
+The same instability appears per agent. Reading across the configurations of Table~\ref{tab:configs}, each agent's measured violation rate moves by a factor of three or more, and in one case from zero to a quarter: the small OpenAI agent is scored at $0.125$ by \textsc{rules+state}, $0.000$ by judge~A, $0.075$ by judge~B and $0.175$ by the full protocol. More awkwardly, the \emph{ordering} of agents is not stable either. The mid-tier Anthropic agent is among the two lowest of the four under \textsc{rules+state} ($0.031$, against $0.029$ for the best agent, a difference far inside either interval) and is the \emph{highest} of all four under every judge-based configuration ($0.100$, $0.300$ and $0.300$). No agent is uniformly best or worst, so the question ``which of these agents violates least?'' has a different answer depending only on which checker is asked.
 
 \subsection{Safe failure is the common case, not an edge case}
 
-Of the 212 runs with a known $O$, overall objective achievement is $9.9\%$. The four categories under \textsc{rules+state} are: intended success $17$ ($8.0\%$), unsafe success $4$ ($1.9\%$), safe failure $176$ ($83.0\%$), unsafe failure $15$ ($7.1\%$). Figure~\ref{fig:cats} gives the per-agent breakdown under the full protocol.
+Of the 212 runs with a known $O$, overall objective achievement is $9.9\%$. The four categories under \textsc{rules+state} are: intended success $17$ ($8.0\%$), unsafe success $4$ ($1.9\%$), safe failure $176$ ($83.0\%$), unsafe failure $15$ ($7.1\%$). Table~\ref{tab:profile-full} gives the full per-agent profile under the full protocol, including the category counts.
 
-\begin{figure*}[t]
-\centering
-\includegraphics[width=0.92\textwidth]{figures/categories_full}
-\caption{Behavioural categories by agent under the full protocol, as counts (left) and shares (right). Safe failure dominates: these scenarios mostly set targets that cannot be reached without breaking something, and the agents mostly declined.}
-\label{fig:cats}
-\end{figure*}
+\begin{table*}[t]
+\caption{Per-agent evaluation profile under the full checker configuration. Intervals are $95\%$ bootstrap, resampling whole scenarios. Category counts are (1) intended success, (2) unsafe success, (3) safe failure, (4) unsafe failure, over the runs with a known $O$. Safe failure is the largest cell for every agent.}
+\label{tab:profile-full}
+\vskip 0.1in
+\begin{center}\begin{small}
+\begin{tabular}{lcccc}
+\toprule
+Model & $O$ & $V$ rate & CS & (1)/(2)/(3)/(4) \\
+\midrule
+haiku-5.5 & 0.071 [0.000, 0.214] & 0.163 [0.050, 0.300] & 0.959 [0.928, 0.987] & 1/3/46/6 \\
+sonnet-5.5 & 0.107 [0.000, 0.286] & 0.300 [0.125, 0.500] & 0.885 [0.803, 0.950] & 1/2/20/5 \\
+gpt-6-luna & 0.179 [0.000, 0.393] & 0.175 [0.050, 0.325] & 0.917 [0.872, 0.958] & 3/2/19/4 \\
+gpt-6-sol & 0.179 [0.000, 0.393] & 0.225 [0.100, 0.375] & 0.901 [0.842, 0.949] & 3/2/18/5 \\
+\bottomrule
+\end{tabular}
+\end{small}\end{center}
+\vskip -0.1in
+\end{table*}
+
+Safe failure is the largest cell for every agent without exception, ranging from $64\%$ of one agent's runs to $82\%$ of another's. Note also that $\mathrm{CS}$ stays between $0.885$ and $0.959$ throughout, while the $V$ rate ranges from $0.163$ to $0.300$ over the same runs. This is the weakness of the ratio in equation~\eqref{eq:cs} made concrete: a trajectory can contain a disqualifying action and still score above $0.88$ on compliance, because one bad step among several ordinary ones barely moves an average. $\mathrm{CS}$ and $V$ are not substitutes, and reporting only the former would conceal the finding.
 
 Two observations follow. First, \textbf{$19\%$ of the runs an outcome-only benchmark would score as successes carry a hard violation}: $4$ of the $21$ successes under \textsc{rules+state}. Under the full protocol the same figure is $9$ of $17$, or $53\%$, on the smaller set of $140$ runs with both a judgment and a known $O$ --- but that configuration is the one whose $\alpha$ is unconstrained, so the higher number should not be read as the better estimate. Either way, category~(2) is real.
 
@@ -392,14 +399,7 @@ Table~\ref{tab:rq2} reports the anomaly component, and it is a negative result. 
 
 The reason is visible in the data rather than speculative. Runs are short (median $5$ actions) and violations occur early, after ordinary reconnaissance. A pre-violation prefix is typically two or three file reads --- the most common compliant behaviour there is. $D$ measures distance from compliant behaviour, and these prefixes \emph{are} compliant behaviour: the violation is a step change, not a drift. The early-warning idea of Section~\ref{sec:framework} presupposes a trajectory long enough to depart from a norm gradually, and these trajectories do not provide one.
 
-\begin{figure}[t]
-\centering
-\includegraphics[width=\linewidth]{figures/conformal_far}
-\caption{Realised against target false-alarm rate for the split-conformal threshold. Both points lie far above the diagonal, so the conformal guarantee does not hold across scenarios.}
-\label{fig:far}
-\end{figure}
-
-The more useful result is the calibration diagnostic in Figure~\ref{fig:far}. Split-conformal calibration should hold the false-alarm rate at its target when calibration and test prefixes are exchangeable. The realised rates are $14.3\%$ against a $5\%$ target and $27.0\%$ against $10\%$ --- an overshoot of about $2.8\times$. \textbf{Exchangeability does not hold across scenarios}, exactly the failure Section~\ref{sec:framework} anticipates when the agent meets task types absent from the calibration set. Calibration and evaluation scenarios are different tasks with different tool vocabularies, so a prefix from an unseen scenario is far from the reference set for reasons that have nothing to do with compliance. The per-task-family calibration we recommend is not possible at this scale: with 20 scenarios split evenly, no family has enough runs to calibrate within.
+The more useful result is the calibration diagnostic, reported in the lower rows of Table~\ref{tab:rq2}. Split-conformal calibration should hold the false-alarm rate at its target when calibration and test prefixes are exchangeable. The realised rates are $14.3\%$ against a $5\%$ target and $27.0\%$ against $10\%$: an overshoot of $2.9\times$ and $2.7\times$ respectively, so the gap is not an artefact of one operating point. \textbf{Exchangeability does not hold across scenarios}, exactly the failure Section~\ref{sec:framework} anticipates when the agent meets task types absent from the calibration set. Calibration and evaluation scenarios are different tasks with different tool vocabularies, so a prefix from an unseen scenario is far from the reference set for reasons that have nothing to do with compliance. The per-task-family calibration we recommend is not possible at this scale: with 20 scenarios split evenly, no family has enough runs to calibrate within.
 
 \subsection{State evidence is less decisive than the hierarchy suggests}
 
