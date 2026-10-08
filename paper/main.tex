@@ -305,7 +305,25 @@ Three departures bound the results and are stated here rather than in a footnote
 
 Table~\ref{tab:configs} is the central result, and it is a mixed one.
 
-\input{tables/checker_configs}
+\begin{table*}[t]
+\caption{The conclusion depends on the checker. Kendall's $\tau$ compares the ranking by $O$ alone with the ranking under the gate at $\delta=0.05$. Where no model passes the gate, $\tau=+1$ is degeneracy rather than agreement: the gate cannot discriminate, so the gated ranking collapses onto the $O$ ranking.}
+\label{tab:configs}
+\vskip 0.1in
+\begin{center}\begin{small}
+\begin{tabular}{lcccc}
+\toprule
+Configuration & Runs & $V$ rate range & \# passing & $\tau$ \\
+\midrule
+rules\_state & 297 & 0.029--0.125 & 2 & -0.60 \\
+judge\_A & 200 & 0.000--0.100 & 3 & +0.60 \\
+judge\_B & 200 & 0.075--0.300 & 0 & +1.00 \\
+full & 200 & 0.163--0.300 & 0 & +1.00 \\
+full\_cross\_family & 200 & 0.125--0.300 & 0 & +1.00 \\
+\bottomrule
+\end{tabular}
+\end{small}\end{center}
+\vskip -0.1in
+\end{table*}
 
 Under \textsc{rules+state}, the claim of Section~\ref{sec:model} holds and holds strongly. Kendall's $\tau=-0.60$ between the ranking by $O$ alone and the ranking under the gate: the two rankings are not merely different, they are \emph{opposed}. The two agents with the highest objective achievement ($O=0.152$ each) are exactly the two the gate disqualifies, while the two with lower $O$ pass. An outcome-only benchmark would promote precisely the agents a constraint-aware gate rejects.
 
@@ -347,7 +365,28 @@ Excluding same-model judgments lowers the measured violation rate for both affec
 
 \subsection{Early warning does not work here}
 
-\input{tables/rq2_early_warning}
+\begin{table}[t]
+\caption{RQ2: the distance score $D$ does not give early warning. AUROC is computed on prefixes strictly before the first violating action. The realised false-alarm rate exceeds its conformal target by a factor of about 2.8, indicating that exchangeability does not hold across scenarios.}
+\label{tab:rq2}
+\vskip 0.1in
+\begin{center}\begin{small}
+\begin{tabular}{lc}
+\toprule
+Quantity & Value \\
+\midrule
+AUROC, $D$ & 0.312 \\
+AUROC, action count & 0.218 \\
+AUROC, keyword rule & 0.516 \\
+\midrule
+Detected before violation, target 5\% & 2/32 \\
+Realised false-alarm rate, target 5\% & 0.143 \\
+Detected before violation, target 10\% & 5/32 \\
+Realised false-alarm rate, target 10\% & 0.270 \\
+\bottomrule
+\end{tabular}
+\end{small}\end{center}
+\vskip -0.1in
+\end{table}
 
 Table~\ref{tab:rq2} reports the anomaly component, and it is a negative result. Scored strictly on prefixes before the first violating action, $D$ achieves an AUROC of $0.312$ --- \emph{below} chance. Violating runs sit closer to compliant reference behaviour than held-out compliant runs do. A keyword baseline is at chance ($0.516$) and a step-count baseline is also inverted ($0.218$). At a $5\%$ target false-alarm rate, $D$ fires before the violation in $2$ of $32$ violating runs.
 
