@@ -19,6 +19,7 @@ from pathlib import Path
 
 import matplotlib
 matplotlib.use("Agg")
+import matplotlib.patheffects as pe
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -26,34 +27,74 @@ from caaef.config import RESULTS_DIR
 
 TABLES = RESULTS_DIR / "tables"
 FIGS = RESULTS_DIR / "figures"
-COL_WIDTH_IN = 3.25
+
+# Figure sizing, per the author's instruction: colour, larger, legends underneath.
+#
+# NOTE a trade-off this overrides. The experiment plan asked for 3.25 in wide,
+# greyscale-readable figures to fit one ICML column. These are wider and rely on colour,
+# so they will need re-sizing before submission. Markers and linestyles are still kept
+# distinct underneath the colour, so nothing is lost if they are ever printed in mono.
+FIG_W = 7.2
+FIG_H = 4.4
 
 plt.rcParams.update({
-    "figure.figsize": (COL_WIDTH_IN, 2.3),
-    "font.size": 8,
-    "axes.labelsize": 8,
-    "axes.titlesize": 8,
-    "legend.fontsize": 7,
-    "xtick.labelsize": 7,
-    "ytick.labelsize": 7,
+    "figure.figsize": (FIG_W, FIG_H),
+    "figure.dpi": 120,
+    "font.size": 11,
+    "axes.labelsize": 11,
+    "axes.titlesize": 12.5,
+    "axes.titleweight": "semibold",
+    "axes.titlepad": 10,
+    "legend.fontsize": 10,
+    "xtick.labelsize": 10,
+    "ytick.labelsize": 10,
     "axes.spines.top": False,
     "axes.spines.right": False,
-    # NOT bbox="tight": it trims to the content and the saved page then comes out
-    # narrower than the column it must fill. constrained_layout fits the content INSIDE
-    # the requested 3.25in instead.
+    "axes.edgecolor": "#4a4a4a",
+    "axes.labelcolor": "#1f1f1f",
+    "text.color": "#1f1f1f",
+    "xtick.color": "#4a4a4a",
+    "ytick.color": "#4a4a4a",
+    "axes.grid": True,
+    "grid.color": "#d8d8d8",
+    "grid.linewidth": 0.7,
+    "grid.alpha": 0.9,
+    "legend.frameon": False,
     "figure.constrained_layout.use": True,
-    "figure.constrained_layout.w_pad": 0.02,
-    "figure.constrained_layout.h_pad": 0.02,
 })
 
 MODEL_ORDER = ["haiku-5.5", "sonnet-5.5", "gpt-6-luna", "gpt-6-sol"]
-# Distinct in greyscale: different markers AND linestyles, mid-greys.
+
+# Colour by provider family so the Anthropic/OpenAI split reads off the chart: warm
+# tones for the Anthropic models, cool for the OpenAI ones, lighter shade for the
+# smaller model in each pair. Markers and linestyles stay distinct as a mono fallback.
 STYLE = {
-    "haiku-5.5":  dict(color="#222222", marker="o", linestyle="-"),
-    "sonnet-5.5": dict(color="#666666", marker="s", linestyle="--"),
-    "gpt-6-luna": dict(color="#999999", marker="^", linestyle="-."),
-    "gpt-6-sol":  dict(color="#444444", marker="D", linestyle=":"),
+    "haiku-5.5":  dict(color="#e08a3c", marker="o", linestyle="-"),
+    "sonnet-5.5": dict(color="#b3442d", marker="s", linestyle="--"),
+    "gpt-6-luna": dict(color="#4c9bd1", marker="^", linestyle="-."),
+    "gpt-6-sol":  dict(color="#2b5d8a", marker="D", linestyle=":"),
 }
+
+# Category palette: the two "violating" cells warm, the two "compliant" cells cool, so
+# the safe/unsafe split is visible before reading the legend.
+CATEGORY_STYLE = [
+    ("(1) intended success", "#4c9bd1", ""),
+    ("(2) unsafe success",   "#b3442d", "//"),
+    ("(3) safe failure",     "#a8cfe8", ""),
+    ("(4) unsafe failure",   "#e08a3c", "\\\\"),
+]
+
+
+def legend_below(ax, ncol: int, y: float = -0.16, **kw):
+    """Put the legend under the axes.
+
+    Every figure here does this, per the author's instruction, so it is one helper
+    rather than four copies of the same bbox_to_anchor incantation.
+    """
+    return ax.legend(
+        loc="upper center", bbox_to_anchor=(0.5, y), ncol=ncol,
+        frameon=False, handlelength=1.9, columnspacing=1.6, **kw,
+    )
 
 
 def ci(d: dict) -> str:
@@ -171,77 +212,158 @@ def table_rq2(rq2: dict) -> str:
 
 
 def fig_categories(rq1: dict, config: str) -> Path:
+    """Stacked behavioural categories per model, as counts and as shares."""
     per = rq1["by_config"][config]["all"]
     models = [m for m in MODEL_ORDER if m in per]
-    labels = ["(1) intended\nsuccess", "(2) unsafe\nsuccess",
-              "(3) safe\nfailure", "(4) unsafe\nfailure"]
-    hatches = ["", "///", "...", "xxx"]
-    greys = ["#dddddd", "#888888", "#f4f4f4", "#555555"]
-    fig, ax = plt.subplots(figsize=(COL_WIDTH_IN, 2.9))
-    bottom = np.zeros(len(models))
-    for k in range(1, 5):
-        vals = np.array([per[m]["categories"].get(str(k), 0) for m in models], dtype=float)
-        ax.bar(models, vals, bottom=bottom, label=labels[k - 1],
-               color=greys[k - 1], edgecolor="black", linewidth=0.5, hatch=hatches[k - 1])
-        bottom += vals
-    ax.set_ylabel("runs")
-    ax.set_title(f"Behavioural categories ({config})")
-    ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.18), ncol=2, frameon=False)
-    ax.tick_params(axis="x", rotation=20)
+    counts = {
+        k: np.array([per[m]["categories"].get(str(k), 0) for m in models], dtype=float)
+        for k in range(1, 5)
+    }
+    totals = sum(counts.values())
+
+    fig, (ax_n, ax_p) = plt.subplots(
+        1, 2, figsize=(FIG_W + 1.2, FIG_H + 0.5), sharey=False
+    )
+    x = np.arange(len(models))
+
+    for ax, as_share in ((ax_n, False), (ax_p, True)):
+        bottom = np.zeros(len(models))
+        for k in range(1, 5):
+            label, colour, hatch = CATEGORY_STYLE[k - 1]
+            vals = counts[k] / totals * 100 if as_share else counts[k]
+            bars = ax.bar(
+                x, vals, bottom=bottom, width=0.66, label=label, color=colour,
+                edgecolor="white", linewidth=1.1, hatch=hatch,
+            )
+            # Label only the slices with room, so the chart stays readable.
+            for xi, v, b in zip(x, vals, bottom):
+                # 0.11 rather than 0.07: thinner bands cannot hold a label without it
+                # colliding with the band edge and the hatching.
+                if (v / (100 if as_share else totals[xi])) > 0.11:
+                    ax.text(
+                        xi, b + v / 2, f"{v:.0f}%" if as_share else f"{int(v)}",
+                        ha="center", va="center", fontsize=9.5,
+                        color="#15202b", fontweight="semibold",
+                        path_effects=[pe.withStroke(linewidth=2.6, foreground="white")],
+                    )
+            bottom += vals
+        ax.set_xticks(x)
+        ax.set_xticklabels(models, rotation=0, ha="center")
+        ax.set_axisbelow(True)
+        ax.grid(axis="x", visible=False)
+        if as_share:
+            ax.set_ylabel("share of runs (%)")
+            ax.set_ylim(0, 100)
+            ax.set_title("as a share")
+        else:
+            ax.set_ylabel("runs")
+            ax.set_title("as counts")
+
+    fig.suptitle(
+        f"Behavioural categories by model  ({config} checker)",
+        fontsize=13.5, fontweight="semibold", y=1.04,
+    )
+    # One shared legend, under both panels.
+    handles, labels = ax_n.get_legend_handles_labels()
+    fig.legend(
+        handles, labels, loc="lower center", ncol=4, frameon=False,
+        bbox_to_anchor=(0.5, -0.04), handlelength=1.6, columnspacing=1.8,
+    )
     out = FIGS / f"categories_{config}.pdf"
-    fig.savefig(out); plt.close(fig)
+    fig.savefig(out, bbox_inches="tight"); plt.close(fig)
     return out
 
 
 def fig_far(rq2: dict) -> Path | None:
+    """Realised against target false-alarm rate: the exchangeability diagnostic."""
     pts = [(float(f), b["realised_far"]) for f, b in rq2["per_target_far"].items()
            if b.get("realised_far") is not None]
     if not pts:
         return None
     pts.sort()
-    x = [p[0] for p in pts]; y = [p[1] for p in pts]
-    fig, ax = plt.subplots()
-    lim = max(max(x), max(y)) * 1.15
-    ax.plot([0, lim], [0, lim], color="#999999", linestyle="--", linewidth=0.8,
-            label="target = realised")
-    ax.plot(x, y, color="#222222", marker="o", linestyle="-", label="observed")
-    for xi, yi in pts:
-        ax.annotate(f"{yi/xi:.1f}$\\times$", (xi, yi), textcoords="offset points",
-                    xytext=(5, -2), fontsize=7)
+    x = np.array([p[0] for p in pts]); y = np.array([p[1] for p in pts])
+
+    fig, ax = plt.subplots(figsize=(FIG_W - 0.4, FIG_H))
+    # Scale each axis to its own data. Forcing a square aspect over the full 0..0.35
+    # range pushed the two observed points into the left third of an otherwise empty
+    # panel; the diagonal is still y=x, it simply is not drawn at 45 degrees.
+    xhi = float(x.max()) * 1.45
+    yhi = float(y.max()) * 1.25
+    ax.fill_between([0, xhi], [0, xhi], [yhi, yhi], color="#b3442d", alpha=0.08,
+                    linewidth=0, label="worse than the guarantee")
+    ax.plot([0, xhi], [0, xhi], color="#6a6a6a", linestyle="--", linewidth=1.6,
+            label="target = realised (guarantee holds)")
+    ax.plot(x, y, color="#b3442d", marker="o", markersize=9, linewidth=2.2,
+            markeredgecolor="white", markeredgewidth=1.4, label="observed", zorder=5)
+
+    for xi, yi in zip(x, y):
+        ax.annotate(
+            f"{yi/xi:.1f}x over target", (xi, yi), textcoords="offset points",
+            xytext=(10, -14), fontsize=10.5, color="#8f2f1f", fontweight="medium",
+        )
+
     ax.set_xlabel("target false-alarm rate")
-    ax.set_ylabel("realised")
-    ax.set_title("Conformal calibration fails across scenarios")
-    ax.set_xlim(0, lim); ax.set_ylim(0, lim)
-    ax.legend(frameon=False, loc="upper left")
+    ax.set_ylabel("realised false-alarm rate")
+    ax.set_title("Conformal calibration does not transfer across scenarios")
+    ax.set_xlim(0, xhi); ax.set_ylim(0, yhi)
+    ax.set_axisbelow(True)
+    legend_below(ax, ncol=3, y=-0.17)
     out = FIGS / "conformal_far.pdf"
-    fig.savefig(out); plt.close(fig)
+    fig.savefig(out, bbox_inches="tight"); plt.close(fig)
     return out
 
 
 def fig_v_by_config(rq1: dict) -> Path:
+    """Violation rate per model across checker configurations, with clustered CIs."""
     confs = [c for c in ("rules_state", "judge_A", "judge_B", "full", "full_cross_family")
              if c in rq1["by_config"]]
-    fig, ax = plt.subplots()
-    xs = np.arange(len(confs))
-    for m in MODEL_ORDER:
-        ys, los, his = [], [], []
+    fig, ax = plt.subplots(figsize=(FIG_W + 0.3, FIG_H + 0.3))
+    xs = np.arange(len(confs), dtype=float)
+    # Small horizontal offsets so overlapping intervals stay legible.
+    offsets = np.linspace(-0.11, 0.11, len(MODEL_ORDER))
+
+    for m, dx in zip(MODEL_ORDER, offsets):
+        ys, lo, hi = [], [], []
         for c in confs:
             v = rq1["by_config"][c]["all"].get(m)
             ys.append(np.nan if not v else v["V_rate"]["point"])
-            los.append(np.nan if not v else (v["V_rate"]["ci_lo"] or np.nan))
-            his.append(np.nan if not v else (v["V_rate"]["ci_hi"] or np.nan))
+            lo.append(np.nan if not v else (v["V_rate"]["ci_lo"] if v["V_rate"]["ci_lo"] is not None else np.nan))
+            hi.append(np.nan if not v else (v["V_rate"]["ci_hi"] if v["V_rate"]["ci_hi"] is not None else np.nan))
         ys = np.array(ys, dtype=float)
-        ax.plot(xs, ys, label=m, markersize=3.5, linewidth=1.1, **STYLE[m])
-    ax.axhline(0.05, color="#bbbbbb", linestyle="--", linewidth=0.8)
-    ax.annotate(r"$\delta=0.05$", (len(confs) - 1, 0.055), fontsize=6.5, color="#777777",
-                ha="right")
+        lo = np.array(lo, dtype=float); hi = np.array(hi, dtype=float)
+        st = STYLE[m]
+        ax.errorbar(
+            xs + dx, ys, yerr=[np.clip(ys - lo, 0, None), np.clip(hi - ys, 0, None)],
+            label=m, markersize=7.5, linewidth=2.0, elinewidth=1.2, capsize=3.5,
+            markeredgecolor="white", markeredgewidth=1.0, alpha=0.95, **st,
+        )
+
+    # Draw the tolerance line and label it directly. An earlier version lost the label
+    # to over-escaped mathtext and shaded everything above it, which filled most of the
+    # panel and read as decoration rather than information.
+    ax.axhline(0.05, color="#3f3f3f", linestyle=(0, (5, 3)), linewidth=1.4, zorder=1)
+    ax.text(
+        -0.33, 0.057, "gate tolerance  " + r"$\delta = 0.05$",
+        fontsize=10.5, color="#3f3f3f", ha="left", va="bottom",
+        path_effects=[pe.withStroke(linewidth=3, foreground="white")],
+    )
+    ax.text(
+        len(confs) - 0.62, 0.012, "below the line = passes the gate",
+        fontsize=9.5, color="#6a6a6a", ha="right", style="italic",
+    )
+
     ax.set_xticks(xs)
-    ax.set_xticklabels([c.replace("_", "\n") for c in confs])
-    ax.set_ylabel("$V$ rate")
-    ax.set_title("Measured violation rate depends on the checker")
-    ax.legend(frameon=False, ncol=2, loc="upper left")
+    ax.set_xticklabels([c.replace("_", " ") for c in confs])
+    ax.set_ylabel("$V$ rate (hard-violation rate)")
+    ax.set_xlabel("checker configuration")
+    ax.set_title("The measured violation rate depends on the checker")
+    ax.set_xlim(-0.4, len(confs) - 0.6)
+    ax.set_ylim(bottom=-0.02)
+    ax.set_axisbelow(True)
+    ax.grid(axis="x", visible=False)
+    legend_below(ax, ncol=4, y=-0.19)
     out = FIGS / "v_rate_by_config.pdf"
-    fig.savefig(out); plt.close(fig)
+    fig.savefig(out, bbox_inches="tight"); plt.close(fig)
     return out
 
 
