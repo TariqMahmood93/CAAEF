@@ -172,6 +172,38 @@ class Client:
             },
         )
 
+    def available_credit_usd(self) -> float | None:
+        """Credit actually available on the account, or None if unobtainable.
+
+        Distinct from the configured cap. The key carries a `limit` field that is a
+        *spending cap*, not funds: a key showing `limit: 50` against `total_credits: 0`
+        will 402 on the first substantial request. Measured on 2026-10-08, which is how
+        the first four mid-tier runs were lost.
+        """
+        try:
+            r = self._http.get("/credits")
+            if r.status_code != 200:
+                return None
+            d = r.json().get("data") or {}
+            return float(d["total_credits"]) - float(d["total_usage"])
+        except (httpx.HTTPError, KeyError, TypeError, ValueError):
+            return None
+
+    def enforce_credit_cap(self, reserve_usd: float = 0.10) -> float:
+        """Lower the ledger's cap to the funds that actually exist.
+
+        Keeps a small reserve, because OpenRouter reserves `max_tokens` worth of credit
+        up front rather than billing only what a call consumes, so a request can be
+        refused while nominal headroom remains. Returns the effective cap.
+        """
+        available = self.available_credit_usd()
+        if available is None:
+            return self.ledger.cap_usd
+        effective = min(self.ledger.cap_usd, self.ledger.total_usd + max(available - reserve_usd, 0.0))
+        if effective < self.ledger.cap_usd:
+            self.ledger.cap_usd = effective
+        return self.ledger.cap_usd
+
     def close(self) -> None:
         self._http.close()
 

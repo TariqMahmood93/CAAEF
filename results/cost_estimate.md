@@ -113,3 +113,78 @@ both model families currently exists**:
 
 So only the OpenAI family is currently usable, which cannot support the two-family
 cross-family judging design that the prompt specifies as the mitigation for judge bias.
+
+---
+
+# Revised estimate, 2026-10-08 — all agent tiers now measured
+
+Credits arrived, so the one derived figure in the estimate above has been replaced with
+a measured one. **$5 was funded, not $50**, so the binding constraint is now funds
+rather than the stated cap.
+
+| | configured cap | actually available | effective cap |
+|---|---|---|---|
+| | $50.00 | $4.9733 | **$4.9655** |
+
+Spend to date: **$0.0922**.
+
+The client now queries the account's real credit at start-up and lowers the ledger cap to
+match, keeping a $0.10 reserve. This is necessary because OpenRouter reserves
+`max_tokens` worth of credit up front rather than billing only what a call consumes, so a
+request can be refused while nominal headroom remains. That is exactly how the first
+four mid-tier runs were lost.
+
+## Measured per-run cost (all tiers)
+
+| Model | tier | reasoning | n | mean $/run |
+|---|---|---|---|---|
+| `haiku-5.5` | small | on | 4 | 0.00236 |
+| `haiku-5.5` | small | off | 4 | 0.00164 |
+| `sonnet-5.5` | mid | on | 2 | 0.01635 |
+| `gpt-6-sol` | mid | on | 2 | 0.02176 |
+| mid combined | mid | on | 4 | **0.01905** |
+
+The earlier mid-tier figure of ~$0.047, derived from the 20× price ratio, was **2.5×
+too pessimistic**. Mid-tier models use noticeably fewer tokens per run than `haiku-5.5`
+does for the same scenario, so the price ratio overstated the cost ratio. This is why the
+prompt's instruction to measure rather than estimate matters: the derived number would
+have forced a much deeper cut than the evidence supports.
+
+`gpt-6-luna` is still unmeasured. It is priced identically to `haiku-5.5`
+($0.10/$0.50), so it is costed at the small-tier measured rate; that is an assumption
+about token counts, not about price, and is flagged as such.
+
+## What fits, on measured numbers
+
+Agents = 2 small + 2 mid models. Judges batched at the authorised 50% discount.
+"Premium judges" = `opus-5.5` + `gpt-6.1-sol`; "cheap judges" = `haiku-5.5` + `gpt-6-luna`.
+Judge output is still assumed at 1,000 tokens per judgment and remains unmeasured.
+
+| Design | runs | agents | judges | total | vs $4.97 |
+|---|---|---|---|---|---|
+| **Full: 40 scen × 3 reps, premium judges** | 960 | 10.28 | 20.38 | **30.65** | over |
+| Full: 40 scen × 3 reps, cheap judges | 960 | 10.28 | 0.68 | 10.96 | over |
+| 20 scen × 3 reps, premium judges | 480 | 5.14 | 10.19 | 15.33 | over |
+| 20 scen × 3 reps, cheap judges | 480 | 5.14 | 0.34 | 5.48 | over |
+| **40 scen × 1 rep, cheap judges** | 320 | 3.43 | 0.23 | **3.65** | fits |
+| **20 scen × 2 reps, cheap judges** | 320 | 3.43 | 0.23 | **3.65** | fits |
+
+The full design as specified costs **~$31**, so the originally stated $50 cap would have
+covered it comfortably, premium judges included. At $4.97 it does not fit, and the two
+options that do cost the same but give up different things:
+
+- **40 scenarios × 1 repetition** keeps all 40 scenarios, so the scenario-level bootstrap
+  (the unit the statistics resample) keeps its full resolution. It gives up repetitions
+  entirely, and repetitions are the only handle on run-to-run variance — which is
+  non-zero, because decoding was measured to be non-deterministic.
+- **20 scenarios × 2 repetitions** keeps a variance handle but halves the bootstrap
+  resolution, and 20 scenarios across 6 domains is thin for any per-domain claim.
+
+Both also force cheap judges, which is the reduction with the highest scientific cost:
+`haiku-5.5` and `gpt-6-luna` are a much weaker panel than the benchmark's own four
+judges, and Phase 5 exists precisely to measure judge reliability against human labels.
+
+**Recommendation: fund the remaining ~$26 and run the full design with premium judges.**
+It is the only option that preserves all three of scenario breadth, repetitions, and a
+credible judge panel. Failing that, 40 scenarios × 1 repetition is the better of the two
+reduced designs, because the bootstrap resamples scenarios.

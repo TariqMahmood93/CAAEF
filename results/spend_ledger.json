@@ -5,8 +5,20 @@
       "completion_tokens": 14113,
       "prompt_tokens": 89247,
       "usd": 0.015981199999999994
+    },
+    "anthropic/claude-sonnet-5.5": {
+      "calls": 7,
+      "completion_tokens": 1210,
+      "prompt_tokens": 10297,
+      "usd": 0.032694
+    },
+    "openai/gpt-6-sol": {
+      "calls": 9,
+      "completion_tokens": 2164,
+      "prompt_tokens": 14538,
+      "usd": 0.0435245
     }
   },
-  "calls": 33,
-  "total_usd": 0.015981199999999994
+  "calls": 49,
+  "total_usd": 0.09219969999999998
 }
