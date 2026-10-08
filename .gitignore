@@ -3,3 +3,6 @@ __pycache__/
 .venv/
 vendor/
 results/raw/
+.build/
+traces/
+*.tar

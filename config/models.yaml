@@ -116,9 +116,11 @@ judges:
 # measured cost, so the choice is made on evidence rather than guesswork. Recorded as
 # pending rather than guessed.
 reasoning_modes:
-  off:
+  # Keys MUST stay quoted. Unquoted `off:`/`on:` are parsed as the booleans False/True
+  # under YAML 1.1, which silently renames these modes.
+  "off":
     params: {}
-  on:
+  "on":
     params:
       reasoning:
         effort: medium
