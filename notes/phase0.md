@@ -459,3 +459,78 @@ cross-family judging design the prompt specifies as the mitigation for judge bia
 **Phase 0 is otherwise complete.** The harness works, the estimate exists, and the
 remaining step is the author's funding decision. Phase 2 must not start before that, and
 the prompt requires approval of the cost estimate regardless.
+
+---
+
+## Phase 1 — tracing and replay verification (2026-10-08)
+
+Implemented `src/caaef/metrics.py` (CAAEF quantities, matching the equations in
+paper/main.tex Sections 3-6) and `src/caaef/replay.py` (trace replay and verification),
+with 45 passing tests in `tests/`.
+
+### Paper sections read before writing metric code
+
+Read Sections 3-6 of `paper/main.tex` first, as the prompt requires. Two details from
+the paper are easy to get wrong and are now pinned by tests:
+
+- **SC sums over steps as well as constraints** (eq. sc). A soft constraint broken at
+  five separate steps contributes five times its weight; it is a running total, not an
+  indicator.
+- **SC is an interval, not a point** (sec 4.4): the lower end counts violations every
+  checker agrees on, the upper end adds the disputed ones.
+
+Quantities that are genuinely undefined return `None` rather than a plausible-looking
+default, because a default here would be a fabricated number:
+
+- `CS` is `None` when T = 0 (eq. cs divides by T). Returning 1.0 would assert full
+  compliance for a run that never acted.
+- `U` is `None` for a single checker. Returning 0.0 would assert that the checkers
+  agreed.
+- `corrected_rate` is `None` when `alpha + beta >= 1`, the validity condition the paper
+  states for eq. corrected. It is also deliberately **not** clipped to [0,1]: a negative
+  p-hat is evidence that alpha is misestimated, and clipping would hide that.
+
+The paper's worked example is a test: `p=0.02, alpha=0.05, beta=0.2` gives `q=0.065`, and
+the correction recovers `p=0.02`.
+
+### What replay means here
+
+The prompt asks that a trace "can be replayed into the same sequence of steps". Replay is
+implemented as **deterministic reconstruction of the recorded trajectory from the stored
+trace alone** — the step sequence, the exact commands, the observations, and the full
+message list that was sent to the model.
+
+It is explicitly *not* re-running the model and comparing. Decoding was measured to be
+non-deterministic on both providers, so a re-run diverges by design and such a check
+would fail for reasons unrelated to trace fidelity.
+
+Result: **all 12 stored traces verify, 0 failures.** The 8 real runs reconstruct their
+full model input; the 4 credit-failed runs verify as correctly-recorded empty runs.
+
+### Two real bugs the replay check caught
+
+1. **Off-by-one in the step counter.** `steps_taken` was incremented before the API
+   call, so a run that failed on step 1 reported `steps_taken=1` with 0 steps recorded.
+   Now counted only after a call succeeds.
+
+2. **One model turn can emit several parallel tool calls.** A real smoke run
+   (`haiku-5.5__off__mandated__Academic-Research-Integrity-Finding__r1`) issued two
+   `bash` calls in turn 1, so `step` was not unique per record.
+
+   The second is a correctness issue, not bookkeeping. The paper's trajectory is a
+   sequence of **actions** `tau = (a_1 ... a_T)` and CS divides by T, so the metrics must
+   index actions, not model turns. Conflating them would have inflated CS on every run
+   with a parallel call. The trace schema now carries `action_index` (strictly
+   consecutive) alongside `step` (the model turn, which may legitimately repeat), and the
+   footer reports `model_turns` and `actions_taken` separately. Existing traces were
+   backfilled and the backfill is recorded in each footer.
+
+### Disclosure for Phase 3
+
+The prompt requires constraint files to be drafted "from the prompts only, before looking
+at any agent trace". That ordering has been partly compromised: in debugging the harness
+I read the full trajectory of `Ai-Hiring-Assistant` and step-level detail for
+`Academic-Research-Integrity-Finding`, plus summary statistics for 6 other runs. What I
+saw was agent behaviour, not constraint definitions, and no constraint file has been
+drafted yet. Recorded here so the author can discount those scenarios' constraint files
+if preferred; the remaining 36 scenarios are uncontaminated.

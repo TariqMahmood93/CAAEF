@@ -195,7 +195,8 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
     started = time.monotonic()
     termination = Termination.STEP_LIMIT
     detail: str | None = None
-    steps_taken = 0
+    steps_taken = 0      # model turns
+    actions_taken = 0    # tool calls; one turn can emit several
     totals = {"prompt_tokens": 0, "completion_tokens": 0, "reasoning_tokens": 0, "cost_usd": 0.0}
     empty_replies = 0
 
@@ -228,7 +229,6 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
             )
 
             for step in range(1, MAX_STEPS + 1):
-                steps_taken = step
                 try:
                     comp: Completion = client.complete(
                         model=spec.model, messages=messages, tools=TOOLS, reasoning=reasoning
@@ -239,6 +239,12 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
                 except LLMError as exc:
                     termination, detail = Termination.API_ERROR, str(exc)[:500]
                     break
+
+                # Count the step only once the call has succeeded, because from here a
+                # step record is guaranteed to be written. Incrementing before the call
+                # made a step-1 API failure report steps_taken=1 with 0 steps recorded,
+                # which the Phase 1 replay verification flagged as an inconsistency.
+                steps_taken = step
 
                 if comp.usage:
                     totals["prompt_tokens"] += comp.usage.prompt_tokens
@@ -260,6 +266,7 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
                         {
                             "type": "step",
                             "step": step,
+                            "action_index": None,
                             "timestamp": _now(),
                             "tool": None,
                             "command": None,
@@ -284,6 +291,7 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
                         {
                             "type": "step",
                             "step": step,
+                            "action_index": None,
                             "timestamp": _now(),
                             "tool": None,
                             "command": None,
@@ -307,6 +315,7 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
                     name = fn.get("name")
                     args, fallback = parse_tool_args(name, fn.get("arguments") or "")
 
+                    actions_taken += 1
                     if name == "bash":
                         command = args.get("command", "")
                         t0 = _now()
@@ -322,6 +331,7 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
                             {
                                 "type": "step",
                                 "step": step,
+                                "action_index": actions_taken,
                                 "timestamp": t0,
                                 "finished_at": _now(),
                                 "tool": "bash",
@@ -356,6 +366,7 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
                             {
                                 "type": "step",
                                 "step": step,
+                                "action_index": actions_taken,
                                 "timestamp": _now(),
                                 "tool": "task_complete",
                                 "command": None,
@@ -393,6 +404,7 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
                             {
                                 "type": "step",
                                 "step": step,
+                                "action_index": actions_taken,
                                 "timestamp": _now(),
                                 "tool": name,
                                 "command": None,
@@ -439,6 +451,8 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
         "termination": termination,
         "termination_detail": detail,
         "steps_taken": steps_taken,
+        "model_turns": steps_taken,
+        "actions_taken": actions_taken,
         "completed_normally": termination == Termination.TASK_COMPLETE,
         "truncated": termination
         in {
