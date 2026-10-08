@@ -108,23 +108,46 @@ judges:
     context: 1050000
 
 # Author's decision: run the reasoning-on / reasoning-off comparison ("both modes").
-# Verified on 2026-10-08 that both are reachable through OpenRouter:
-#   off  -> omit the reasoning parameter; responses carry reasoning_tokens: 0
-#   on   -> reasoning: {effort: medium}; responses carry a populated reasoning field
-#           (measured: 16 reasoning tokens on haiku-5.5, 9 on gpt-6-luna for one step)
-# WHICH model carries the comparison arm is deferred until the smoke test gives a
-# measured cost, so the choice is made on evidence rather than guesswork. Recorded as
-# pending rather than guessed.
+#
+# CORRECTED 2026-10-08 after measurement. An earlier version of this file defined "off"
+# as *omitting* the reasoning parameter. That was wrong: these models reason adaptively
+# by default, so omitting the parameter leaves reasoning ON. The first smoke-test run
+# labelled "off" spent 1618 reasoning tokens. Comparing "omit" against "effort: medium"
+# would have compared two reasoning-on conditions and measured nothing. The two smoke
+# traces produced under the old labels are therefore discarded rather than relabelled.
+#
+# Measured behaviour on a prompt hard enough to trigger thinking (2026-10-08):
+#
+#   model          omit param      enabled:false        effort:medium
+#   haiku-5.5      314 r-tokens    0 r-tokens           347 r-tokens
+#   sonnet-5.5     171 r-tokens    ERROR (see below)    0 r-tokens
+#   gpt-6-luna      17 r-tokens    0 r-tokens            18 r-tokens
+#
+# claude-sonnet-5.5 REFUSES to disable reasoning:
+#   "Reasoning is mandatory for this endpoint and cannot be disabled."
+# The first-party Models API agrees for haiku (capabilities.thinking.types.disabled
+# .supported == true) and this is consistent with Anthropic's published lineup, where
+# Opus/Fable are "adaptive (always on)" and Sonnet/Haiku are "adaptive".
+#
+# Consequence, to be stated in the limitations: the reasoning on/off comparison CANNOT
+# be run on sonnet-5.5. It is available on haiku-5.5, gpt-6-sol and gpt-6-luna only.
 reasoning_modes:
   # Keys MUST stay quoted. Unquoted `off:`/`on:` are parsed as the booleans False/True
   # under YAML 1.1, which silently renames these modes.
   "off":
-    params: {}
+    params:
+      reasoning:
+        enabled: false
+    # Not available on every model; the runner must refuse rather than silently fall back.
+    unsupported_models: [sonnet-5.5]
   "on":
     params:
       reasoning:
         effort: medium
-  comparison_arm: PENDING_SMOKE_TEST
+    unsupported_models: []
+  # Which model carries the comparison arm is still deferred to the measured cost
+  # estimate, but it must be one of haiku-5.5 / gpt-6-sol / gpt-6-luna.
+  comparison_arm: PENDING_COST_ESTIMATE
 
 sampling:
   # The benchmark documents temperature 0 / deterministic as its default. That is NOT

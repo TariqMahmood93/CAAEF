@@ -1,0 +1,12 @@
+{
+  "by_model": {
+    "anthropic/claude-haiku-5.5": {
+      "calls": 33,
+      "completion_tokens": 14113,
+      "prompt_tokens": 89247,
+      "usd": 0.015981199999999994
+    }
+  },
+  "calls": 33,
+  "total_usd": 0.015981199999999994
+}

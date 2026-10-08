@@ -174,7 +174,17 @@ def execute_run(spec: RunSpec, cfg: Config, client: Client) -> dict:
     cleanly at the cap; every other failure is recorded in the trace and returned.
     """
     system_prompt, user_prompt = read_prompts(spec.scenario, spec.variant)
-    reasoning = cfg.reasoning_modes[spec.reasoning_mode].get("params", {}).get("reasoning")
+    mode = cfg.reasoning_modes[spec.reasoning_mode]
+    if spec.model.name in (mode.get("unsupported_models") or []):
+        # Refuse loudly rather than silently running a different condition than the one
+        # labelled. sonnet-5.5 cannot disable reasoning; a silent fallback would make the
+        # reasoning comparison meaningless while still looking like it had run.
+        raise ValueError(
+            f"model {spec.model.name!r} does not support reasoning mode "
+            f"{spec.reasoning_mode!r}; it is listed in unsupported_models. "
+            "Running it would mislabel the condition."
+        )
+    reasoning = (mode.get("params") or {}).get("reasoning")
 
     messages: list[dict] = [
         {"role": "system", "content": system_prompt + SYSTEM_SUFFIX},
