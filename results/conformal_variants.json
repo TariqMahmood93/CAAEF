@@ -1,0 +1,72 @@
+{
+  "n_compliant": 134,
+  "n_calibration_runs": 71,
+  "n_evaluation_runs": 63,
+  "targets": [
+    0.05,
+    0.1
+  ],
+  "variants": {
+    "split": {
+      "0.05": {
+        "threshold": 1.224744871391589,
+        "realised_far": 0.14285714285714285
+      },
+      "0.1": {
+        "threshold": 0.8454679489967102,
+        "realised_far": 0.2698412698412698
+      }
+    },
+    "mondrian_by_length": {
+      "0.05": {
+        "thresholds_by_length_bucket": {
+          "0": 0.8498365855987975,
+          "1": 0.8647034996965787,
+          "2": 0.765487774617524,
+          "3": 0.713795402178264
+        },
+        "realised_far": 0.25396825396825395
+      },
+      "0.1": {
+        "thresholds_by_length_bucket": {
+          "0": 0.8092723394721245,
+          "1": 0.81849834331195,
+          "2": 0.7156575483361595,
+          "3": 0.713795402178264
+        },
+        "realised_far": 0.4444444444444444
+      }
+    },
+    "weighted_covariate_shift": {
+      "0.05": {
+        "realised_far": 0.30158730158730157
+      },
+      "0.1": {
+        "realised_far": 0.49206349206349204
+      }
+    },
+    "cross_conformal_cv_plus": {
+      "0.05": {
+        "threshold": 1.224744871391589,
+        "n_folds_used": 5,
+        "realised_far": 0.14285714285714285
+      },
+      "0.1": {
+        "threshold": 1.167855290156045,
+        "n_folds_used": 5,
+        "realised_far": 0.2222222222222222
+      }
+    },
+    "mondrian_run_level": {
+      "0.05": {
+        "threshold_standardised": 2.503176242419853,
+        "realised_far": 0.15873015873015872
+      },
+      "0.1": {
+        "threshold_standardised": 1.4751166237447861,
+        "realised_far": 0.2698412698412698
+      }
+    }
+  },
+  "caveat": "Better calibration cannot rescue detection: D's AUROC is 0.312, below chance. These variants address only whether the false-alarm rate matches its target."
+}

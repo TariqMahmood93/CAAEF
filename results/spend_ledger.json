@@ -1,10 +1,10 @@
 {
   "by_model": {
     "anthropic/claude-haiku-5.5": {
-      "calls": 725,
-      "completion_tokens": 435581,
-      "prompt_tokens": 2824124,
-      "usd": 0.5002028999999996
+      "calls": 883,
+      "completion_tokens": 480745,
+      "prompt_tokens": 3501223,
+      "usd": 0.5904948000000003
     },
     "anthropic/claude-sonnet-5.5": {
       "calls": 255,
@@ -25,6 +25,6 @@
       "usd": 1.728541899999999
     }
   },
-  "calls": 1831,
-  "total_usd": 4.614400429999999
+  "calls": 1989,
+  "total_usd": 4.704692329999995
 }

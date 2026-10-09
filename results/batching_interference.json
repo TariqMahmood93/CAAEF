@@ -1,0 +1,14 @@
+{
+  "n_pairs": 158,
+  "n_runs": 24,
+  "agreement": 0.9430379746835443,
+  "ci": [
+    0.8952981845342435,
+    0.9697459210898157
+  ],
+  "batched_only": 7,
+  "per_constraint_only": 2,
+  "rate_batched": 0.0759493670886076,
+  "rate_per_constraint": 0.04430379746835443,
+  "kappa": 0.49823570924488364
+}
