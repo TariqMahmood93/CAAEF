@@ -97,6 +97,13 @@ def _run(cmd: list[str], timeout: int = DOCKER_TIMEOUT_S, **kw) -> subprocess.Co
     )
 
 
+def _exec(name: str, cmd: str, timeout: int = SCRIPT_TIMEOUT_S):
+    try:
+        return _run(["docker", "exec", "-w", "/app", name, "bash", "-lc", cmd], timeout=timeout)
+    except subprocess.TimeoutExpired:
+        return None
+
+
 def score_run(
     run_key: str,
     scenario: str,
@@ -104,6 +111,7 @@ def score_run(
     snapshot: Path,
     kpi_script: str,
     extra_args: str = "",
+    rule: dict | None = None,
 ) -> KpiResult:
     """Rebuild the final state in a fresh container and run the pristine KPI script.
 
@@ -111,8 +119,8 @@ def score_run(
     afterwards whatever happens.
     """
     basename = kpi_script.split("/")[-1]
-    pristine = resolve_pristine(scenario, variant, basename)
-    if pristine is None:
+    pristine = resolve_pristine(scenario, variant, basename) if kpi_script else None
+    if kpi_script and pristine is None:
         return KpiResult(
             run_key, scenario, variant, kpi_script, False, "", "", None,
             error=f"pristine script {basename!r} not found in the scenario directory",
@@ -151,30 +159,76 @@ def score_run(
 
         # Install the pristine script at its documented path, overwriting whatever the
         # agent may have left there.
-        target = kpi_script if kpi_script.startswith("/") else f"/usr/local/bin/{basename}"
-        _run(["docker", "exec", name, "mkdir", "-p", str(Path(target).parent)])
-        c = _run(["docker", "cp", str(pristine), f"{name}:{target}"])
-        if c.returncode != 0:
-            return KpiResult(
-                run_key, scenario, variant, kpi_script, True, "", "", None,
-                error=f"pristine copy failed: {c.stderr[:200]}",
-            )
+        target = ""
+        if pristine is not None:
+            target = kpi_script if kpi_script.startswith("/") else f"/usr/local/bin/{basename}"
+            _run(["docker", "exec", name, "mkdir", "-p", str(Path(target).parent)])
+            c = _run(["docker", "cp", str(pristine), f"{name}:{target}"])
+            if c.returncode != 0:
+                return KpiResult(
+                    run_key, scenario, variant, kpi_script, True, "", "", None,
+                    error=f"pristine copy failed: {c.stderr[:200]}",
+                )
 
-        cmd = f"chmod +x {target} 2>/dev/null; {target} {extra_args}".strip()
-        try:
-            out = _run(
-                ["docker", "exec", "-w", "/app", name, "bash", "-lc", cmd],
-                timeout=SCRIPT_TIMEOUT_S,
-            )
-        except subprocess.TimeoutExpired:
-            return KpiResult(
-                run_key, scenario, variant, kpi_script, True, "", "timed out", None,
-                error="pristine KPI script timed out",
-            )
-        return KpiResult(
-            run_key, scenario, variant, kpi_script, True,
-            out.stdout, out.stderr, out.returncode,
-        )
+        rule = rule or {}
+        _exec(name, f"chmod +x {target} 2>/dev/null; true")
+
+        # measure_sh: an aggregate measurement written out in the rules YAML, run in the
+        # restored container after the pristine script is installed. Needed where the KPI
+        # is a RATE over records rather than one script invocation (the script scores one
+        # record at a time, or the KPI is a property of the final state). Kept in YAML,
+        # not in code, so the author can review exactly what each scenario measures.
+        if rule.get("measure_sh"):
+            out = _exec(name, rule["measure_sh"], timeout=SCRIPT_TIMEOUT_S * 3)
+            if out is None:
+                return KpiResult(run_key, scenario, variant, kpi_script, True, "",
+                                 "timed out", None, error="measure_sh timed out")
+            return KpiResult(run_key, scenario, variant, kpi_script, True,
+                             out.stdout, out.stderr, out.returncode)
+
+        # args_glob: run the script once per matching file and keep the best outcome.
+        # Used where the scenario names no single artefact to validate, so "did ANY
+        # artefact the agent produced pass?" is the only answerable form of the question.
+        if rule.get("args_glob"):
+            listing = _exec(name, f"ls -1 {rule['args_glob']} 2>/dev/null | head -40")
+            files = [f for f in (listing.stdout.splitlines() if listing else []) if f.strip()]
+            if not files:
+                if rule.get("empty_glob_is_zero"):
+                    # The directory ships in the image, so an empty one means no artefact
+                    # was produced: the objective demonstrably was not achieved.
+                    return KpiResult(run_key, scenario, variant, kpi_script, True,
+                                     "", "no artefact produced", 1)
+                return KpiResult(run_key, scenario, variant, kpi_script, True, "", "",
+                                 None, error="no artefact matched args_glob")
+            best = None
+            for fpath in files:
+                o = _exec(name, f"{target} {fpath}")
+                if o is None:
+                    continue
+                if best is None or (o.returncode == 0 and best.returncode != 0):
+                    best = o
+                if o.returncode == 0:
+                    break
+            if best is None:
+                return KpiResult(run_key, scenario, variant, kpi_script, True, "", "",
+                                 None, error="every args_glob invocation timed out")
+            return KpiResult(run_key, scenario, variant, kpi_script, True,
+                             best.stdout, best.stderr, best.returncode)
+
+        args = rule.get("args", extra_args) or ""
+        out = _exec(name, f"{target} {args}".strip())
+        if out is None:
+            return KpiResult(run_key, scenario, variant, kpi_script, True, "", "timed out",
+                             None, error="pristine KPI script timed out")
+
+        # read_file: the script writes its verdict to a file rather than to stdout.
+        if rule.get("read_file"):
+            got = _exec(name, f"cat {rule['read_file']} 2>/dev/null")
+            return KpiResult(run_key, scenario, variant, kpi_script, True,
+                             (got.stdout if got else ""), out.stderr, out.returncode)
+
+        return KpiResult(run_key, scenario, variant, kpi_script, True,
+                         out.stdout, out.stderr, out.returncode)
     finally:
         _run(["docker", "rm", "-f", name])
 
@@ -204,6 +258,13 @@ def objective_from_output(scenario: str, result: KpiResult) -> tuple[float | Non
         return None, f"KPI script did not run: {result.error}"
 
     text = (result.stdout or "") + "\n" + (result.stderr or "")
+
+    if rule.get("exit_code_success") is not None:
+        want = int(rule["exit_code_success"])
+        if result.exit_code is None:
+            return None, "no exit code captured"
+        ok = result.exit_code == want
+        return (1.0 if ok else 0.0), f"exit {result.exit_code} vs required {want}"
 
     if rule.get("success_regex"):
         if re.search(rule["success_regex"], text, re.IGNORECASE | re.MULTILINE):

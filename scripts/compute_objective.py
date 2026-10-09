@@ -8,6 +8,7 @@ in the output are skipped.
 from __future__ import annotations
 
 import json
+import os
 import sys
 from collections import Counter
 from pathlib import Path
@@ -17,7 +18,7 @@ import yaml
 from caaef.config import RESULTS_DIR
 from caaef.objective import objective_from_output, score_run
 
-OUT = RESULTS_DIR / "objective.jsonl"
+OUT = Path(os.environ.get("OBJECTIVE_OUT", RESULTS_DIR / "objective.jsonl"))
 
 
 def main() -> int:
@@ -58,7 +59,8 @@ def main() -> int:
                 stats["no_rule"] += 1
             else:
                 r = score_run(h["run_key"], scen, h["variant"],
-                              Path(f["final_state_snapshot"]), rule["script"])
+                              Path(f["final_state_snapshot"]), rule.get("script") or "",
+                              rule=rule)
                 O, why = objective_from_output(scen, r)
                 rec = {
                     "run_key": h["run_key"], "scenario": scen, "variant": h["variant"],
