@@ -31,6 +31,12 @@ class AuditLabel:
     violated: str          # "yes" | "no" | "unclear"
     first_action: int | None
     confidence: str | None
+    # Run-level, repeated on every row of a run: how the agent ended. Category (3) pools
+    # a principled refusal with simply running out of steps, and only this field separates
+    # them. None for label files exported before the field existed.
+    stop_reason: str | None = None
+    stop_evidence: str | None = None
+    note: str | None = None
 
 
 def load_audit() -> list[AuditLabel]:
@@ -52,9 +58,17 @@ def load_audit() -> list[AuditLabel]:
     unblind = json.loads(BLINDING_MAP.read_text())
 
     out: list[AuditLabel] = []
+    skipped: list[str] = []
     for path in csvs:
         with path.open(newline="", encoding="utf-8") as fh:
-            for row in csv.DictReader(fh):
+            reader = csv.DictReader(fh)
+            # Only annotator exports carry an "annotator" column. Anything else in this
+            # directory -- an adjudication sheet, a stray spreadsheet export -- is skipped
+            # with a message rather than being parsed into labels it cannot supply.
+            if not reader.fieldnames or "annotator" not in reader.fieldnames:
+                skipped.append(path.name)
+                continue
+            for row in reader:
                 blinded = row["run_key"]
                 real = unblind.get(blinded, blinded)
                 fa = row.get("first_violating_action") or ""
@@ -65,7 +79,18 @@ def load_audit() -> list[AuditLabel]:
                     violated=row["violated"],
                     first_action=int(fa) if fa.isdigit() else None,
                     confidence=row.get("confidence") or None,
+                    stop_reason=row.get("run_stop_reason") or None,
+                    stop_evidence=row.get("run_stop_evidence") or None,
+                    note=row.get("note") or None,
                 ))
+    if skipped:
+        print(f"note: skipped {len(skipped)} non-annotator CSV(s) in {AUDIT_DIR.name}: "
+              f"{', '.join(skipped)}")
+    if not out:
+        raise AuditMissing(
+            f"no usable annotator rows in {AUDIT_DIR} "
+            f"({len(csvs)} CSV file(s) present, none with an 'annotator' column)"
+        )
     return out
 
 

@@ -1,0 +1,86 @@
+{
+ "THIS_IS_A_SYNTHETIC_TEST": true,
+ "truth": {
+  "alpha": 0.08,
+  "beta": 0.25,
+  "prevalence": 0.2
+ },
+ "recovered": {
+  "alpha": {
+   "point": 0.07203389830508475,
+   "ci_lo": 0.025748321778364697,
+   "ci_hi": 0.12705091692136705,
+   "n_resamples": 2000
+  },
+  "beta": {
+   "point": 0.234375,
+   "ci_lo": 0.1230701754385965,
+   "ci_hi": 0.346173469387755,
+   "n_resamples": 2000
+  }
+ },
+ "n_obs": 300,
+ "corrected::agentA": {
+  "q_observed": 0.2236842105263158,
+  "p_corrected": {
+   "point": 0.21864512369124414,
+   "ci_lo": 0.1482435122835152,
+   "ci_hi": 0.29957098017042466,
+   "n_resamples": 2000
+  },
+  "true_prevalence_in_arm": 0.20394736842105263
+ },
+ "corrected::agentB": {
+  "q_observed": 0.21621621621621623,
+  "p_corrected": {
+   "point": 0.20787798107385738,
+   "ci_lo": 0.12012494885802354,
+   "ci_hi": 0.2939199335298412,
+   "n_resamples": 2000
+  },
+  "true_prevalence_in_arm": 0.22297297297297297
+ },
+ "coverage_checks": [
+  {
+   "quantity": "alpha",
+   "truth": 0.08,
+   "point": 0.07203389830508475,
+   "ci": [
+    0.025748321778364697,
+    0.12705091692136705
+   ],
+   "covered": true
+  },
+  {
+   "quantity": "beta",
+   "truth": 0.25,
+   "point": 0.234375,
+   "ci": [
+    0.1230701754385965,
+    0.346173469387755
+   ],
+   "covered": true
+  },
+  {
+   "quantity": "p::agentA",
+   "truth": 0.20394736842105263,
+   "point": 0.21864512369124414,
+   "ci": [
+    0.1482435122835152,
+    0.29957098017042466
+   ],
+   "covered": true
+  },
+  {
+   "quantity": "p::agentB",
+   "truth": 0.22297297297297297,
+   "point": 0.20787798107385738,
+   "ci": [
+    0.12012494885802354,
+    0.2939199335298412
+   ],
+   "covered": true
+  }
+ ],
+ "all_covered": true
+}
