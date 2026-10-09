@@ -188,3 +188,99 @@ the O-coverage gap and the early-warning gap that the reviewer called out. Then 
 between **B3** (recommended: unseen scenarios, ~1 week, tests generalisation) and **B4**
 (paid, ~$25–60, meets the specification properly). I will not start Phase B until you
 choose.
+
+---
+
+# ADDENDUM — if EUR 20 of credit is added (2026-10-09)
+
+**Verdict: EUR 20 changes the answer from "infeasible" to "the full Task 3 specification
+fits, with headroom."** Paid hosted models remove the CPU bottleneck entirely, so the
+binding constraint stops being wall-clock and becomes a budget that is no longer binding
+either.
+
+Assume **~$19 usable** from EUR 20: the conversion and OpenRouter's payment-processing
+fee are not quantities I can verify, so this is deliberately conservative. Confirm the
+credited amount after topping up and I will re-plan if it differs materially.
+
+## Costing, from measured token profiles
+
+Not assumed: the per-run profile comes from the 301 stored runs (mean **16,032** prompt
+and **1,721** completion tokens per run), and the per-constraint judge call cost comes
+from the 158 real calls made for the batching experiment ($0.00057 each at Haiku prices).
+
+Candidate slate, all verified present and tool-capable on OpenRouter today (170 such
+models exist at or below $0.60/MTok input, across 34 providers, so there is no scarcity):
+
+| role | family | model | cost |
+|---|---|---|---|
+| agent | Qwen small | `qwen/qwen3.7-flash` | $0.169 |
+| agent | Qwen large | `qwen/qwen3-32b` | $0.423 |
+| agent | Mistral small | `mistralai/mistral-nemo` | $0.128 |
+| agent | Mistral large | `mistralai/mistral-small-3.2-24b-instruct` | $0.450 |
+| agent | Gemma small | `google/gemma-3-12b-it` | $0.254 |
+| agent | Gemma large | `google/gemma-4-31b-it` | $0.487 |
+| | | **1,440 agent runs** | **$1.91** |
+| judge | Meta | `meta-llama/llama-3.1-8b-instruct` | $1.672 |
+| judge | NVIDIA | `nvidia/nemotron-3-super-120b-a12b` | $4.141 |
+| judge | Amazon | `amazon/nova-lite-v1` | $2.662 |
+| | | **11,377 per-constraint calls** | **$8.48** |
+
+| | |
+|---|---|
+| full specification | **$10.39** |
+| smoke tests + determinism checks | $0.25 |
+| 25% contingency | $2.60 |
+| **planned spend** | **$13.23** |
+| **headroom against ~$19** | **$5.77** |
+
+This satisfies every requirement that was previously unmeetable:
+
+* **3 families x 2 sizes** for agents — Qwen, Mistral, Gemma.
+* **3 judges from 3 families, none also an agent** — Meta, NVIDIA, Amazon, none of which
+  is an agent here, and none of which is one of the original four
+  (`sonnet-5.5`, `haiku-5.5`, `gpt-6-sol`, `gpt-6-luna`).
+* **One constraint per judge call, not batched** — the requirement that alone made the
+  local plan a three-month job now costs $8.48.
+* **Re-judging the original 297** under the same three-judge protocol, included above.
+* **Three full repetitions** across all 40 scenarios and both framings.
+
+## Wall-clock
+
+The API is no longer the bottleneck; Docker is. At the measured 24 s per run (build,
+isolated execution, state hashing, snapshot), 1,440 runs is **9.6 h** sequential, and the
+34,132 judge calls at ~3 s with six concurrent is **4.7 h**. Allow **1.5–2 days** end to
+end including smoke tests, with the runner resumable throughout.
+
+## What I would do, in order
+
+1. **Phase A unchanged and first** — Tasks 0, 1, 2, 3a and 4 still need no model calls.
+   Crucially, the constraints for the 20 new scenarios (3a) must be written and committed
+   *before* any run on them, so this ordering is not optional.
+2. **Smoke-test all 9 candidates** (2 scenarios each, ~$0.25) against the existing
+   criteria: valid `bash` and `task_complete` calls, no malformed-output loops, finishes
+   inside the 50-step cap. Drop failures and record why in `MODELS.md`. Expect losses —
+   three of five local candidates failed this test.
+3. **Determinism check** per model: four identical requests, report whether the endpoint
+   honours `temperature 0` and a seed. On the current four, none did.
+4. **Run the grid** into `runs/v2/`, leaving the original 297 untouched and separately
+   reported, never pooled silently.
+5. **Re-judge everything** under the three-judge per-constraint protocol; report pairwise
+   agreement, direction of disagreement, majority vote and any-judge-flags.
+6. **Recompute every table**, with between-repetition variance.
+
+## Two honest caveats
+
+**These are small, cheap models.** The original four were frontier-tier; the new six are
+in the $0.03–0.09/MTok range. Violation behaviour may differ systematically, and a
+difference between the groups will confound model quality with model identity. Task 3c's
+instruction to keep the groups separate is therefore doing real work, and I will not pool
+them.
+
+**Three repetitions finally become meaningful.** Decoding was non-deterministic on every
+endpoint tested, which is precisely why the single completed repetition has been the
+study's weakest point. Three repetitions across 40 scenarios is the single largest
+improvement EUR 20 buys, beyond closing the audit gap.
+
+## Spend remaining unchanged until you confirm
+
+Nothing in this addendum has been run. Current spend on the extension: **$0.00**.
