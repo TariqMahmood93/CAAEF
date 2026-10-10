@@ -37,7 +37,7 @@ import yaml
 from caaef.checkers import load_constraints, load_run
 from caaef.config import REPO_ROOT, RESULTS_DIR, load_config
 from caaef.judge import SYSTEM_PROMPT, _extract_json, render_trajectory
-from caaef.llm import BudgetExceeded, Client, Ledger, Model
+from caaef.llm import BudgetExceeded, Client, Ledger, LLMError, Model
 
 SLATE_PATH = REPO_ROOT / "config" / "judges_v2.yaml"
 VERIFIED_PATH = RESULTS_DIR / "judges_v2_verified.json"
@@ -151,6 +151,20 @@ def main() -> int:
                         )
                     except BudgetExceeded as exc:
                         stopped = "budget_exceeded"; print(f"  {exc}"); break
+                    except LLMError as exc:
+                        # Rate limit / provider error on one judge should NOT stop the
+                        # whole smoke — record the failure and keep going. Important
+                        # because the full judging wave will see this too.
+                        rec = report["per_judge"][judge.name]
+                        rec["parse_fail"] += 1
+                        rec["calls"].append({
+                            "run_key": trace.header["run_key"],
+                            "constraint_id": con.id,
+                            "error": str(exc)[:200],
+                            "parsed_ok": False,
+                        })
+                        print(f"  {judge.name:<22}  LLMError: {str(exc)[:100]}")
+                        continue
                     obj = _extract_json(comp.content or "") or {}
                     ok = bool(obj.get("verdicts")) and all(
                         isinstance(v, dict) and "id" in v and "violated" in v
