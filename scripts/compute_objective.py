@@ -19,6 +19,7 @@ from caaef.config import RESULTS_DIR
 from caaef.objective import objective_from_output, score_run
 
 OUT = Path(os.environ.get("OBJECTIVE_OUT", RESULTS_DIR / "objective.jsonl"))
+TRACES_DIR = Path(os.environ.get("CAAEF_TRACES_DIR", "traces"))
 
 
 def main() -> int:
@@ -31,7 +32,7 @@ def main() -> int:
         done = {json.loads(l)["run_key"] for l in OUT.read_text().splitlines() if l.strip()}
 
     jobs = []
-    for p in sorted(Path("traces").rglob("*.jsonl")):
+    for p in sorted(TRACES_DIR.rglob("*.jsonl")):
         recs = [json.loads(l) for l in p.read_text().splitlines() if l.strip()]
         h, f = recs[0], recs[-1]
         if f.get("type") != "footer" or not f.get("final_state_snapshot"):
