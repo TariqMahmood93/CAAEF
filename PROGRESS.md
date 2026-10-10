@@ -1,0 +1,133 @@
+# PROGRESS
+
+Running log of the extension study. Updated by each session before it stops, so a cut-off
+session can resume from the folder alone. For context on *why*, read `PLAN.md`; for
+numbers from runs that have landed, read `RESULTS.md`; for the setup of the Phase 2 wave
+that is next, read `config/design_v2.yaml`.
+
+Last updated: 2026-10-10 by the Claude cloud session on branch `claude/awesome-cori-ftoh0l`
+after the user pushed the local experiment folder to GitHub (`origin/experiments`).
+
+---
+
+## Where state actually lives
+
+| artefact | where | note |
+|---|---|---|
+| source, configs, scripts, PLAN/RESULTS/README | `TariqMahmood93/CAAEF` on GitHub, branch `experiments` | pushed by the user from `~/Desktop/caaef-experiment` |
+| the 303 Phase 1 traces | **local only**, `~/Desktop/caaef-experiment/traces/` | gitignored — too large and would mix generated outputs into git |
+| vendored ODCV-Bench | **local only**, `~/Desktop/caaef-experiment/vendor/ODCV-Bench/` | gitignored |
+| raw results | **local only**, `~/Desktop/caaef-experiment/results/raw/` | gitignored |
+| API keys (`.env`) | **local only** | gitignored; verified never in git history |
+| this cloud session's working copy | `/home/user/CAAEF` on branch `claude/awesome-cori-ftoh0l`, reset to `origin/experiments` | reads code, cannot run Docker or call paid APIs from here |
+
+**Consequence:** Phase 2 agent runs *must be executed on the local desktop.* The cloud
+session can plan, review code, write documentation, and prepare analysis scripts, but it
+cannot build Docker images or spend from the OpenRouter credit.
+
+---
+
+## Status per task
+
+| task | status | evidence |
+|---|---|---|
+| 0 — bookkeeping | **done** | `PLAN.md` §2 (303 vs 297, judge coverage, judge identity) |
+| 1 — audit tooling | **done** (no human labels yet) | `b1b4a13`; `scripts/analyse_audit.py` with synthetic recovery test; `ANNOTATION_GUIDE.md`; 85 tests pass |
+| 2 — objective rescoring | **done** | `90b2bc6`; O coverage 71.4% → 100%; `RESULTS.md` §Task 2 |
+| 3a — constraints for new 20 scenarios | **done, committed before any run** | `3d33399`; 262 constraints across 40 scenario files; `tests/test_constraints_schema.py` enforces the schema |
+| 3b–e — Phase 2 run grid (Plan E) | **PENDING, this is next** | design committed at `f3752bd` as `extension-v2-plan-E`; images pre-built at `8edd689`; runner patched at `5110e16`; `results/phase2_status_v2.json` shows `n_remaining: 480`, `n_executed_now: 0` |
+| 4 — next-action early warning | **done** | `ca52fbc`; found the paper's D result is a length artefact; `RESULTS.md` §Task 4 |
+| 5 — guard | not started | optional, only if time and budget remain after 3 |
+
+Spend so far: **$4.70** (Phase 1 only). OpenRouter credit remaining as of the last plan: ~$14–15 of the ~$19 topped up.
+
+---
+
+## What is next
+
+**Launch the Plan E Phase 2 wave on the local desktop.** 480 runs = 20 scenarios × 2
+variants × 3 repetitions × 4 original agents (`sonnet-5.5`, `haiku-5.5`, `gpt-6-sol`,
+`gpt-6-luna`), judges deliberately deferred. Projected cost from measured per-run tokens:
+~$8.22. Traces land in `traces/v2/` so the original 297 stay byte-identical.
+
+### Exact command to resume (on the local desktop)
+
+```bash
+cd ~/Desktop/caaef-experiment
+
+# 1. Pull anything the cloud session committed.
+git pull origin experiments
+
+# 2. Confirm the design and that the run grid is still 480.
+CAAEF_DESIGN=config/design_v2.yaml CAAEF_STATUS_FILE=phase2_status_v2.json \
+  .venv/bin/python scripts/run_phase2.py --dry-run
+
+# 3. Smoke-test one run before committing to the full wave (cheap).
+CAAEF_DESIGN=config/design_v2.yaml CAAEF_STATUS_FILE=phase2_status_v2.json \
+  .venv/bin/python scripts/run_phase2.py --limit 1
+
+# 4. Full wave. Resumable; stops cleanly at HEADROOM_USD before the cap.
+CAAEF_DESIGN=config/design_v2.yaml CAAEF_STATUS_FILE=phase2_status_v2.json \
+  .venv/bin/python scripts/run_phase2.py
+
+# 5. Commit the updated status + any new traces metadata and push.
+git add results/phase2_status_v2.json
+git commit -m "Phase 2 wave: progress snapshot"
+git push origin experiments
+```
+
+### What the cloud session can meanwhile prepare (no model calls, no Docker)
+
+- Draft `scripts/run_judges_v2.py` so the user can run the three-judge per-constraint
+  protocol as soon as `traces/v2/` has runs. Needs the three judge models decided per
+  `PLAN.md` addendum (`meta-llama/llama-3.1-8b-instruct`, `nvidia/nemotron-3-super-120b-a12b`,
+  `amazon/nova-lite-v1`), none of them a current agent.
+- Draft `scripts/analyse_v2.py` to recompute every paper table on the new wave: checker-
+  configuration, tolerance sweep, per-agent profile, judge agreement, weight sensitivity,
+  between-repetition variance. Keep groups separate (original 297 vs Plan E) and report
+  both plus the union, never pooled silently.
+- Draft `MODELS.md` skeleton (identifier, provider, context length, decoding settings,
+  determinism-check outcome, date accessed) and the per-model smoke-test script. Fill at
+  run time, not from memory.
+- Draft a one-command reproduction script that chains Phases 0–5 end to end.
+- Keep `RESULTS.md` and this file current. On every commit from here, append one line to
+  the "Session log" below.
+
+### Decisions blocking further progress
+
+1. **Approve the judge slate**? The addendum names Meta, NVIDIA, Amazon models;
+   confirm these are still what we want before `run_judges_v2.py` goes further than a
+   draft.
+2. **How much of the paper to update now vs after the wave lands**? The paper source is in
+   `paper/main.tex`; the user prefers to revise prose themselves (prompt §Hard rules).
+   The cloud session should prepare LaTeX-ready tables in `tables/` and the contradicted-
+   claims list, but not touch `paper/main.tex` prose.
+3. **Target host for the Phase 2 run** — local desktop (confirmed, no HPC). Expect ≥9 h
+   of wall clock if runs stay close to the Phase 1 measured 24 s/run. Make sure the
+   laptop stays plugged in and awake, or run it under `tmux`/`nohup`.
+
+---
+
+## Hard-rule reminders for whoever picks this up
+
+- Never substitute model labels for human audit labels. Task 1's α, β, corrected rates,
+  gates and U-AUROC remain **PENDING AUDIT** until two annotators return label files.
+- Never overwrite the original 297 traces or the original `results/phase2_status.json`.
+  New wave goes to `traces/v2/` and `results/phase2_status_v2.json`.
+- Keep every run, including failed and truncated ones, with its termination reason.
+- All intervals: 95% percentile bootstrap, 10,000 resamples, resampling whole scenarios.
+- No touching `paper/main.tex` prose; deliver numbers, tables and a results summary.
+- Commit after every step and keep this file current.
+
+---
+
+## Session log
+
+| when | branch | by | summary |
+|---|---|---|---|
+| 2026-10-09 | master (local) | prior desktop session | PLAN.md, Task 0 answered, feasibility measured |
+| 2026-10-09 | master (local) | prior desktop session | Task 2 complete: six objective rules, O coverage 71.4% → 100% |
+| 2026-10-10 | master (local) | prior desktop session | Task 1 audit tooling; Task 3a constraints for new 20; Task 4 next-action scorer and the D-is-a-length-artefact finding |
+| 2026-10-10 | master (local) | prior desktop session | Plan E design committed; scenario images pre-built; `run_phase2.py` patched for the wave; **wave not yet executed** |
+| 2026-10-10 | experiments (push) | user + this cloud session | Local folder pushed to `TariqMahmood93/CAAEF:experiments` after a fresh fine-grained PAT with `Contents: Read and write`; `.env` confirmed never in git history; `.claude/settings.local.json` untracked |
+| 2026-10-10 | claude/awesome-cori-ftoh0l | this cloud session | Reset session branch to `origin/experiments`; read PLAN, RESULTS, README, design_v2, phase2 status files; wrote this `PROGRESS.md` |
