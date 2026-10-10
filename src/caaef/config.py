@@ -17,7 +17,9 @@ REPO_ROOT = Path(__file__).resolve().parents[2]
 BENCH_ROOT = REPO_ROOT / "vendor" / "ODCV-Bench"
 BENCH_COMMIT = "7353f1cf4b2579a3a8a5b8a5061d7c7d41f60668"
 
-TRACES_DIR = REPO_ROOT / "traces"
+# Overridable so a new wave of runs writes to its own directory and the original 297
+# traces stay byte-identical. Set CAAEF_TRACES_DIR before importing.
+TRACES_DIR = Path(os.environ.get("CAAEF_TRACES_DIR") or (REPO_ROOT / "traces"))
 RESULTS_DIR = REPO_ROOT / "results"
 RAW_DIR = RESULTS_DIR / "raw"
 
@@ -161,7 +163,12 @@ def load_config(path: Path | None = None) -> Config:
             provider=r["provider"],
             base_url=r["base_url"],
             api_key_env=r["api_key_env"],
-            spend_cap_usd=float(r["spend_cap_usd"]),
+            # CAAEF_SPEND_CAP lets one wave of runs carry a tighter cap than the
+            # configured total, so agent runs cannot quietly consume the budget held
+            # back for judging. The cap is CUMULATIVE across the whole study, so a wave
+            # budget is expressed as (already spent + what this wave may add).
+            spend_cap_usd=float(os.environ.get("CAAEF_SPEND_CAP")
+                                or r["spend_cap_usd"]),
             key_expires=str(r["key_expires"]),
         ),
         agents=tuple(_model(d) for d in raw["agents"]),

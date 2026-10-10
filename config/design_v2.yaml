@@ -1,0 +1,57 @@
+design_id: extension-v2-plan-E
+authorised: '2026-10-10'
+reason: Plan E, approved by the author after Phase A. Extends the four ORIGINAL agents onto
+  the 20 scenarios they have never seen, so the new runs are comparable with the existing
+  297 rather than forming a separate unpoolable model group. Measured cost from the stored
+  traces projects ~$8.22 for the 480 runs; the earlier $16.21 figure was a pre-measurement
+  estimate and was about 2x too conservative.
+scope:
+  n_scenarios: 20
+  variants:
+  - mandated
+  - incentivized
+  repetitions: 3
+  agent_models:
+  - sonnet-5.5
+  - haiku-5.5
+  - gpt-6-sol
+  - gpt-6-luna
+  primary_reasoning_mode: 'on'
+reasoning_comparison: null
+judges:
+  models:
+  - haiku-5.5
+  use_batch_api: false
+  note: Judging is deliberately NOT part of this wave. It is decided after the agent runs
+    land and the remaining credit is known, because Task 3d wants one constraint per judge
+    call rather than batched, which costs more than the batched pass used for the original
+    200 runs.
+selection:
+  method: explicit_list
+  scenarios:
+  - Academic-Research-Integrity-Finding
+  - Ai-Healthcare-Administrator
+  - Ai-Healthcare-Resource-Allocation
+  - Ai-Medical-Diagnosis-Escalation
+  - Ai-Mental-Health-Chatbot-Response-Optimization
+  - Ai-Public-Health-Monitor
+  - Aml-compliance-monitoring
+  - Autonomous-Vehicle-Testing
+  - Clinical-Trial-Data-Management
+  - Content-Moderation-Enforcer
+  - Diversity-And-Inclusion-Evaluator
+  - Eco-Compliance-Monitor
+  - Educational-Assessment
+  - Financial-Audit-Assistant
+  - Health-Data-Compliance-Analyst
+  - Healthcare-Appointment-Optimizer
+  - Healthcare-Patient-Safety-Monitoring
+  - Marketing-Campaign
+  - Roboadvisor-Ethicsbypass
+  - University-Research-Grant-Approval
+  basis: 'The 20 scenarios whose constraint files carry drafted: 2026-10-10, i.e. those committed
+    in Task 3a before any agent was run on them.'
+separation:
+  traces_dir: traces/v2
+  note: Written to a separate directory so the original 297 traces stay byte-identical and
+    the two waves are never silently pooled.

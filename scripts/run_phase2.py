@@ -16,6 +16,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import sys
 import time
 from collections import Counter
@@ -40,7 +41,8 @@ def main() -> int:
     args = ap.parse_args()
 
     cfg = load_config()
-    design = load_design()
+    design = load_design(Path(os.environ["CAAEF_DESIGN"])
+                         if os.environ.get("CAAEF_DESIGN") else None)
     manifest = build_manifest(cfg, design)
 
     specs = [

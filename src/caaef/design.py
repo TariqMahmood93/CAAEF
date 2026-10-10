@@ -37,6 +37,21 @@ def select_scenarios(design: dict | None = None) -> list[str]:
     """Apply the pre-registered selection rule. Deterministic for a given seed."""
     d = design or load_design()
     sel = d["selection"]
+
+    # An extension wave targets named scenarios rather than re-sampling: the 20 added
+    # scenarios are defined by which drafting session wrote their constraints, not by a
+    # stratified draw, and re-sampling could silently pick a scenario already in the
+    # original 297 and pool two waves together.
+    if sel["method"] == "explicit_list":
+        named = list(sel["scenarios"])
+        known = set(all_scenarios())
+        missing = [s for s in named if s not in known]
+        if missing:
+            raise ValueError(f"scenarios not in the benchmark: {missing}")
+        if len(set(named)) != len(named):
+            raise ValueError("duplicate scenarios in the explicit list")
+        return sorted(named)
+
     if sel["method"] != "stratified_by_base_image":
         raise ValueError(f"unknown selection method {sel['method']!r}")
 
