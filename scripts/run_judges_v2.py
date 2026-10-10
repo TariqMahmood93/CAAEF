@@ -120,15 +120,23 @@ def _list_traces(waves: list[dict], wave_filter: set[str] | None) -> list[tuple[
         if not tdir.exists():
             print(f"wave {w['name']}: {tdir} not found; skipping")
             continue
-        other_dirs = [d for name, d in all_dirs.items() if name != w["name"]]
+        # Only exclude an OTHER wave's dir when it is actually nested INSIDE this wave's
+        # dir. Without that direction check, a wave rooted at `traces/v2` would exclude
+        # its own content because `traces/` is another wave (but `traces/v2` is NOT
+        # inside `traces/v2/...`, so there's no overlap to exclude).
+        nested_other_dirs = [
+            d for name, d in all_dirs.items()
+            if name != w["name"] and str(d).startswith(str(tdir) + "/")
+        ]
         traces = []
         for p in sorted(tdir.rglob("*.jsonl")):
             rp = p.resolve()
-            if any(str(rp).startswith(str(d) + "/") for d in other_dirs):
-                continue  # belongs to a different wave; skip
+            if any(str(rp).startswith(str(d) + "/") for d in nested_other_dirs):
+                continue  # belongs to a nested wave; skip
             traces.append(p)
-        print(f"wave {w['name']}: {len(traces)} traces under {tdir}"
-              f" (excluded {sum(1 for _ in tdir.rglob('*.jsonl')) - len(traces)} belonging to other waves)")
+        excluded = sum(1 for _ in tdir.rglob('*.jsonl')) - len(traces)
+        suffix = f" (excluded {excluded} belonging to nested waves)" if excluded else ""
+        print(f"wave {w['name']}: {len(traces)} traces under {tdir}{suffix}")
         for p in traces:
             out.append((w["name"], p))
     return out
