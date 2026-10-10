@@ -1,0 +1,105 @@
+# CAAEF experiment — judge slate for the Task 3d / Plan E judging wave
+#
+# DRAFT, pending author approval and runtime verification. Nothing in this file
+# is applied automatically; `scripts/run_judges_v2.py` reads it only when invoked.
+#
+# Author approval status: slate chosen from the PLAN addendum (2026-10-09) and
+# approved in the session of 2026-10-10. Each model identifier and price here
+# MUST be re-verified at run time against OpenRouter's /api/v1/models endpoint
+# before any judging call is made. The Hard rules say: do not assume any
+# specific model name or version exists; verify it. The paper and MODELS.md
+# must record exactly what the verification returned on the run date.
+#
+# Family and non-agent discipline:
+#   - Three judges, three families (Meta / NVIDIA / Amazon). None of these
+#     families is also an agent, so NO judgment is same-family and NO
+#     judgment is same-model. The original Phase 1 configuration had both
+#     problems and had to report "cross-family only" splits throughout.
+#   - All three must be tool-capable per OpenRouter's `supported_parameters`
+#     field. verify_judges.py checks this; a judge that fails tool support
+#     is dropped and recorded in MODELS.md.
+#
+# Judging protocol (per Task 3d of the prompt):
+#   - ONE constraint per judge call, NOT batched. Each judgment is
+#     independent of other constraints in the same scenario.
+#   - Both waves judged: the 480-run Plan E wave in traces/v2/ AND the
+#     original 297 runs in traces/ (re-judged under this new protocol
+#     so old and new are scored under one protocol per Task 3d).
+
+route:
+  provider: openrouter   # must match config/models.yaml route
+  prices_fetched: PENDING_RUNTIME_VERIFICATION   # verify_judges.py sets a real date
+
+judges:
+  - name: llama-3.1-8b
+    id: meta-llama/llama-3.1-8b-instruct
+    first_party_id: meta-llama/Meta-Llama-3.1-8B-Instruct
+    family: meta
+    # Prices as recorded in PLAN.md addendum, 2026-10-09.
+    # verify_judges.py OVERWRITES these from the live OpenRouter response
+    # before any judging call; the file is updated and committed as evidence.
+    price_in: 0.055
+    price_out: 0.055
+    price_cache_read: null
+    context: 128000
+
+  - name: nemotron-3-super-120b
+    id: nvidia/nemotron-3-super-120b-a12b
+    first_party_id: nvidia/Nemotron-3-Super-120B-a12b
+    family: nvidia
+    price_in: 0.145
+    price_out: 0.580
+    price_cache_read: null
+    context: 128000
+
+  - name: nova-lite
+    id: amazon/nova-lite-v1
+    first_party_id: amazon.nova-lite-v1:0
+    family: amazon
+    price_in: 0.060
+    price_out: 0.240
+    price_cache_read: null
+    context: 300000
+
+# Reasoning setting for the judging calls.
+#   The original two judges (opus-5.5, gpt-6.1-sol) were run with reasoning
+#   enabled because disabling flipped verdicts in a side-by-side test. These
+#   three models do not advertise a reasoning parameter; verify_judges.py
+#   will attempt one judging call per model with and without reasoning={effort:
+#   medium} and record whether the endpoint honours it. If it is silently
+#   ignored, judging proceeds without the parameter and MODELS.md records so.
+reasoning:
+  default: {}            # pass nothing; let verify_judges.py refine this
+  fallback: null         # explicit "no reasoning" marker
+
+# Resumability and budget. Same shape as Phase 2.
+runtime:
+  headroom_usd: 0.40     # keep in sync with run_phase2.py
+  determinism_check:
+    enabled: true
+    n_requests: 4        # per model, same prompt
+    scenarios:
+      - Supply-Chain-Sabotage-Finding
+      - Content-Moderation-Enforcer
+  smoke_test:
+    enabled: true
+    n_scenarios: 2       # two scenarios per judge, both variants, 1 run each
+    scenarios:
+      - Content-Moderation-Enforcer
+      - Supply-Chain-Sabotage-Finding
+    accept_criteria:
+      must_return_valid_json: true
+      must_name_recorded_action: true
+      must_return_a_verdict_per_constraint_batch: 1  # per-constraint protocol
+
+# Scope: which traces to judge.
+scope:
+  waves:
+    - name: original-297
+      traces_dir: traces
+      design: config/design.yaml
+    - name: plan-e-480
+      traces_dir: traces/v2
+      design: config/design_v2.yaml
+  # Judge ALL recorded constraints for each run (not a subsample).
+  subsample: null

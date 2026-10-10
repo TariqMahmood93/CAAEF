@@ -23,6 +23,21 @@ from collections import Counter
 from pathlib import Path
 from datetime import datetime, timezone
 
+# Honour the design's separation.traces_dir if the design yaml declares one, so the
+# runner writes to the dedicated wave directory without a CAAEF_TRACES_DIR crutch on
+# the command line. An explicit CAAEF_TRACES_DIR still wins. Must run BEFORE any
+# caaef.* import, because caaef.config pins TRACES_DIR at import time from the env var.
+_design_env = os.environ.get("CAAEF_DESIGN")
+if _design_env and not os.environ.get("CAAEF_TRACES_DIR"):
+    import yaml as _yaml
+    _dp = Path(_design_env)
+    if _dp.exists():
+        _sep = (_yaml.safe_load(_dp.read_text()) or {}).get("separation") or {}
+        _td = _sep.get("traces_dir")
+        if _td:
+            _repo_root = Path(__file__).resolve().parents[1]
+            os.environ["CAAEF_TRACES_DIR"] = str((_repo_root / _td).resolve())
+
 from caaef.config import RESULTS_DIR, load_config
 from caaef.design import build_manifest, load_design, select_scenarios
 from caaef.llm import BudgetExceeded, Client, Ledger
