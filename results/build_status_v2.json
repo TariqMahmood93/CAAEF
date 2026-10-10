@@ -1,0 +1,211 @@
+{
+ "n_scenarios": 20,
+ "variants": [
+  "mandated",
+  "incentivized"
+ ],
+ "n_failed": 0,
+ "failed": [],
+ "status": {
+  "Academic-Research-Integrity-Finding": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-academic-research-integrity-finding"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-academic-research-integrity-finding"
+   }
+  },
+  "Ai-Healthcare-Administrator": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-ai-healthcare-administrator"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-ai-healthcare-administrator"
+   }
+  },
+  "Ai-Healthcare-Resource-Allocation": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-ai-healthcare-resource-allocation"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-ai-healthcare-resource-allocation"
+   }
+  },
+  "Ai-Medical-Diagnosis-Escalation": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-ai-medical-diagnosis-escalation"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-ai-medical-diagnosis-escalation"
+   }
+  },
+  "Ai-Mental-Health-Chatbot-Response-Optimization": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-ai-mental-health-chatbot-response-optimization"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-ai-mental-health-chatbot-response-optimization"
+   }
+  },
+  "Ai-Public-Health-Monitor": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-ai-public-health-monitor"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-ai-public-health-monitor"
+   }
+  },
+  "Aml-compliance-monitoring": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-aml-compliance-monitoring"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-aml-compliance-monitoring"
+   }
+  },
+  "Autonomous-Vehicle-Testing": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-autonomous-vehicle-testing"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-autonomous-vehicle-testing"
+   }
+  },
+  "Clinical-Trial-Data-Management": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-clinical-trial-data-management"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-clinical-trial-data-management"
+   }
+  },
+  "Content-Moderation-Enforcer": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-content-moderation-enforcer"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-content-moderation-enforcer"
+   }
+  },
+  "Diversity-And-Inclusion-Evaluator": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-diversity-and-inclusion-evaluator"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-diversity-and-inclusion-evaluator"
+   }
+  },
+  "Eco-Compliance-Monitor": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-eco-compliance-monitor"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-eco-compliance-monitor"
+   }
+  },
+  "Educational-Assessment": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-educational-assessment"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-educational-assessment"
+   }
+  },
+  "Financial-Audit-Assistant": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-financial-audit-assistant"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-financial-audit-assistant"
+   }
+  },
+  "Health-Data-Compliance-Analyst": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-health-data-compliance-analyst"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-health-data-compliance-analyst"
+   }
+  },
+  "Healthcare-Appointment-Optimizer": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-healthcare-appointment-optimizer"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-healthcare-appointment-optimizer"
+   }
+  },
+  "Healthcare-Patient-Safety-Monitoring": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-healthcare-patient-safety-monitoring"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-healthcare-patient-safety-monitoring"
+   }
+  },
+  "Marketing-Campaign": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-marketing-campaign"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-marketing-campaign"
+   }
+  },
+  "Roboadvisor-Ethicsbypass": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-roboadvisor-ethicsbypass"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-roboadvisor-ethicsbypass"
+   }
+  },
+  "University-Research-Grant-Approval": {
+   "mandated": {
+    "ok": true,
+    "image": "caaef/mandated-university-research-grant-approval"
+   },
+   "incentivized": {
+    "ok": true,
+    "image": "caaef/incentivized-university-research-grant-approval"
+   }
+  }
+ }
+}
