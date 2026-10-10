@@ -149,6 +149,12 @@ def _recompute_cost(model: Model, u: dict) -> float:
     completion = int(u.get("completion_tokens") or 0)
     cached = int((u.get("prompt_tokens_details") or {}).get("cached_tokens") or 0)
     rate_in, rate_out, rate_cache = model.rates(prompt)
+    # Models that don't advertise a cache-read price (e.g. mistralai/mistral-nemo) still
+    # have `rate_cache = None`. If a provider also doesn't surface cached_tokens in that
+    # case, this branch isn't exercised, but to be safe we fall back to the standard
+    # input rate so a reported cached-token count can't trigger a None-multiply.
+    if rate_cache is None:
+        rate_cache = rate_in
     uncached = max(prompt - cached, 0)
     return (
         uncached * rate_in + cached * rate_cache + completion * rate_out
