@@ -355,3 +355,111 @@ constraint — which would make V structurally always 0 for it. It also pins the
 contamination flags so they cannot drift.
 
 93 tests pass.
+
+---
+
+## Task 4 — Next-action early warning
+
+**Status: done. Negative on the repair, but it found an error in the paper's existing
+result.** No model calls.
+
+Setup, with nothing tuned on test scenarios: leave-one-scenario-out, so the model never
+sees a run from the scenario it scores; the conformal threshold calibrated on a third of
+scenarios held out from both training and test; L2 logistic regression at C=1.0 with
+balanced class weights, fixed a priori with no sweep. Positives are prefixes strictly
+before the first violating action in a run that goes on to violate; negatives are prefixes
+of compliant (V=0, SC=0) runs. 32 violating runs are time-localised by the judges, 134 are
+compliant.
+
+### The paper's D result is substantially a length artefact
+
+This is the main finding and it is a correction, not an extension.
+
+Violating runs are truncated at their first violation and so contribute a **median of 3**
+eligible prefixes. Compliant runs are not truncated and contribute a **median of 5**. Total
+run length is the same in both classes (median 5). So a run-level maximum is taken over
+unequal numbers of draws, and the maximum of more draws is systematically larger — which
+biases every run-level score **against the positive class**, independently of whether it
+carries signal.
+
+The `action_index` baseline proves the mechanism:
+
+| | unmatched | horizon-matched |
+|---|---|---|
+| `action_index` AUROC | **0.172** | **0.500 exactly** |
+
+An index-only score cannot be anti-predictive; 0.172 is the confound, and matching the
+horizon returns it to exactly chance, as it must. With the confound controlled:
+
+| scorer | unmatched | matched H=2 | matched H=3 |
+|---|---|---|---|
+| next-action | 0.396 | 0.381 | 0.512 |
+| next-action, no position | 0.393 | 0.383 | 0.511 |
+| **D (prefix distance)** | **0.293** | **0.496** | **0.432** |
+| keyword | 0.495 | 0.500 | 0.500 |
+| action index | 0.172 | 0.500 | 0.500 |
+
+**D is uninformative, not anti-predictive.** The paper reports D at AUROC 0.312 and reads
+it as below chance; at matched horizon D is 0.496 and 0.432. The claim that should be made
+is that D carries no usable signal, which is weaker and more defensible than the claim that
+it is actively wrong.
+
+### Does the next-action score help?
+
+At the prefix level, yes, modestly:
+
+| scorer | prefix-level AUROC (n=747, 98 positive) |
+|---|---|
+| **next-action** | **0.603** |
+| next-action, no position features | 0.604 |
+| D (prefix distance) | 0.511 |
+| keyword | 0.500 |
+| action index | 0.372 |
+
+The obvious worry is that 0.603 is the same confound in another guise: positives sit
+systematically earlier in a run, so "early means dangerous" would score well while being
+useless to a guard. The ablation settles it — dropping the position features entirely gives
+**0.604**, statistically indistinguishable. The discrimination comes from the typed features
+of the action about to run plus the composition of what preceded it, not from position.
+
+**But it does not convert into usable detection.** At the matched horizon:
+
+| target FAR | next-action detection | realised FAR | D detection | realised FAR |
+|---|---|---|---|---|
+| 5% (H=2) | 0/17 | 7.6% | 0/17 | 5.4% |
+| 10% (H=2) | 2/17 (12%) | 16.3% | 2/17 (12%) | 12.0% |
+| 5% (H=3) | 0/10 | 2.3% | 0/10 | 10.3% |
+| 10% (H=3) | 0/10 | 4.6% | 0/10 | 16.1% |
+
+A prefix-level AUROC of 0.60 is far too weak to put a guard on. At a 5% false-alarm budget
+it catches nothing.
+
+Two secondary observations:
+
+*   **The conformal overshoot reproduces.** D's realised FAR is roughly 2× its target
+    (5% → 9.8–10.3%, 10% → 15.2–16.1%), consistent with the paper's existing finding. The
+    next-action score is better calibrated (5% → 2.3–7.6%), which is a point in favour of
+    its score distribution even though its detection is no better.
+*   **Power is the binding constraint, not method.** Only 10–17 violating runs survive to
+    the matched horizon. These AUROCs have intervals wide enough to contain chance in
+    every case, so the right reading is "no evidence of usable early warning", not
+    "demonstrated absence".
+
+### What this changes in the paper
+
+*   The RQ2 claim that D is **below chance** should be withdrawn and replaced with D being
+    **uninformative** once the truncation asymmetry is controlled. The 0.312 figure is
+    confounded.
+*   Any future early-warning evaluation on this benchmark must match the horizon between
+    classes, or report a length-dependent artefact. This applies to the conformal
+    comparison as well.
+*   The negative conclusion of RQ2 survives: a repair of the specific shape Task 4
+    requested — scoring the proposed action rather than the prefix — produces a modest,
+    real, position-independent improvement in prefix-level discrimination that is still
+    nowhere near deployable.
+
+8 tests pin the two load-bearing invariants: `eligible()` stops strictly before the first
+violating action, and `action_index` must score exactly 0.5 at a matched horizon — the
+property that certifies the matching works.
+
+101 tests pass.

@@ -1,0 +1,413 @@
+{
+ "config": "full",
+ "counts": {
+  "runs": 200,
+  "violating": 41,
+  "violating_localised": 32,
+  "violating_scoreable": 32,
+  "compliant": 134,
+  "scenarios": 20,
+  "calibration_scenarios": 6,
+  "prefixes_scored": 747,
+  "prefixes_positive": 98,
+  "eval_violating_runs": 18,
+  "eval_compliant_runs": 92,
+  "calibration_compliant_runs": 42
+ },
+ "hyperparameters_fixed_a_priori": {
+  "penalty": "l2",
+  "C": "1.0",
+  "class_weight": "balanced",
+  "max_iter": "2000",
+  "solver": "lbfgs",
+  "random_state": "20261008"
+ },
+ "prefix_level_auroc": {
+  "next_action": 0.6026304204270306,
+  "next_action_no_index": 0.6039354108361372,
+  "D_prefix": 0.511218200685513,
+  "keyword": 0.49970912864375333,
+  "action_index": 0.37190654381937677
+ },
+ "run_level": {
+  "next_action": {
+   "auroc_run_level": 0.3958333333333333,
+   "far_0.05": {
+    "threshold": 0.9339016945652185,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.021739130434782608,
+    "target_far": 0.05,
+    "false_alarms": 2,
+    "compliant_runs_evaluated": 92
+   },
+   "far_0.1": {
+    "threshold": 0.9009846438322731,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.043478260869565216,
+    "target_far": 0.1,
+    "false_alarms": 4,
+    "compliant_runs_evaluated": 92
+   }
+  },
+  "next_action_no_index": {
+   "auroc_run_level": 0.39311594202898553,
+   "far_0.05": {
+    "threshold": 0.9336875632504642,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.021739130434782608,
+    "target_far": 0.05,
+    "false_alarms": 2,
+    "compliant_runs_evaluated": 92
+   },
+   "far_0.1": {
+    "threshold": 0.9010068933177322,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.043478260869565216,
+    "target_far": 0.1,
+    "false_alarms": 4,
+    "compliant_runs_evaluated": 92
+   }
+  },
+  "D_prefix": {
+   "auroc_run_level": 0.29347826086956524,
+   "far_0.05": {
+    "threshold": 1.224744871391589,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.09782608695652174,
+    "target_far": 0.05,
+    "false_alarms": 9,
+    "compliant_runs_evaluated": 92
+   },
+   "far_0.1": {
+    "threshold": 1.2215635592051304,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.15217391304347827,
+    "target_far": 0.1,
+    "false_alarms": 14,
+    "compliant_runs_evaluated": 92
+   }
+  },
+  "keyword": {
+   "auroc_run_level": 0.4945652173913043,
+   "far_0.05": {
+    "threshold": 1.0,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.0,
+    "target_far": 0.05,
+    "false_alarms": 0,
+    "compliant_runs_evaluated": 92
+   },
+   "far_0.1": {
+    "threshold": 1.0,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.0,
+    "target_far": 0.1,
+    "false_alarms": 0,
+    "compliant_runs_evaluated": 92
+   }
+  },
+  "action_index": {
+   "auroc_run_level": 0.1721014492753623,
+   "far_0.05": {
+    "threshold": 10.047619047619051,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.010869565217391304,
+    "target_far": 0.05,
+    "false_alarms": 1,
+    "compliant_runs_evaluated": 92
+   },
+   "far_0.1": {
+    "threshold": 8.07142857142857,
+    "detected_before_violation": 0,
+    "violating_runs_evaluated": 18,
+    "detection_rate": 0.0,
+    "realised_far": 0.043478260869565216,
+    "target_far": 0.1,
+    "false_alarms": 4,
+    "compliant_runs_evaluated": 92
+   }
+  }
+ },
+ "length_confound": {
+  "eligible_prefixes_violating": {
+   "n": 32,
+   "median": 3.0,
+   "mean": 3.0625,
+   "min": 1,
+   "max": 8
+  },
+  "eligible_prefixes_compliant": {
+   "n": 134,
+   "median": 5.0,
+   "mean": 4.843283582089552,
+   "min": 2,
+   "max": 12
+  },
+  "total_run_length_median_violating": 5.0,
+  "total_run_length_median_compliant": 5.0,
+  "note": "Total run lengths are comparable, so the gap in eligible prefixes comes entirely from truncating violating runs at their first violation. An unmatched run-level maximum is therefore biased AGAINST the positive class."
+ },
+ "run_level_horizon_matched": {
+  "H=2": {
+   "next_action": {
+    "auroc_run_level": 0.3813938618925831,
+    "far_0.05": {
+     "threshold": 0.8262091845638636,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.0,
+     "realised_far": 0.07608695652173914,
+     "target_far": 0.05,
+     "false_alarms": 7,
+     "compliant_runs_evaluated": 92
+    },
+    "far_0.1": {
+     "threshold": 0.7397221274147167,
+     "detected_before_violation": 2,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.11764705882352941,
+     "realised_far": 0.16304347826086957,
+     "target_far": 0.1,
+     "false_alarms": 15,
+     "compliant_runs_evaluated": 92
+    }
+   },
+   "next_action_no_index": {
+    "auroc_run_level": 0.38267263427109977,
+    "far_0.05": {
+     "threshold": 0.8260888443309715,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.0,
+     "realised_far": 0.07608695652173914,
+     "target_far": 0.05,
+     "false_alarms": 7,
+     "compliant_runs_evaluated": 92
+    },
+    "far_0.1": {
+     "threshold": 0.73905018125787,
+     "detected_before_violation": 2,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.11764705882352941,
+     "realised_far": 0.16304347826086957,
+     "target_far": 0.1,
+     "false_alarms": 15,
+     "compliant_runs_evaluated": 92
+    }
+   },
+   "D_prefix": {
+    "auroc_run_level": 0.49648337595907927,
+    "far_0.05": {
+     "threshold": 1.0998010201832307,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.0,
+     "realised_far": 0.05434782608695652,
+     "target_far": 0.05,
+     "false_alarms": 5,
+     "compliant_runs_evaluated": 92
+    },
+    "far_0.1": {
+     "threshold": 0.0,
+     "detected_before_violation": 2,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.11764705882352941,
+     "realised_far": 0.11956521739130435,
+     "target_far": 0.1,
+     "false_alarms": 11,
+     "compliant_runs_evaluated": 92
+    }
+   },
+   "keyword": {
+    "auroc_run_level": 0.5,
+    "far_0.05": {
+     "threshold": 0.0,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.05,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 92
+    },
+    "far_0.1": {
+     "threshold": 0.0,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.1,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 92
+    }
+   },
+   "action_index": {
+    "auroc_run_level": 0.5,
+    "far_0.05": {
+     "threshold": 2.0,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.05,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 92
+    },
+    "far_0.1": {
+     "threshold": 2.0,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 17,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.1,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 92
+    }
+   },
+   "n_violating": 17,
+   "n_compliant": 92
+  },
+  "H=3": {
+   "next_action": {
+    "auroc_run_level": 0.5120689655172413,
+    "far_0.05": {
+     "threshold": 0.9339016945652185,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.022988505747126436,
+     "target_far": 0.05,
+     "false_alarms": 2,
+     "compliant_runs_evaluated": 87
+    },
+    "far_0.1": {
+     "threshold": 0.8966692762276849,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.04597701149425287,
+     "target_far": 0.1,
+     "false_alarms": 4,
+     "compliant_runs_evaluated": 87
+    }
+   },
+   "next_action_no_index": {
+    "auroc_run_level": 0.5109195402298851,
+    "far_0.05": {
+     "threshold": 0.9336875632504642,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.022988505747126436,
+     "target_far": 0.05,
+     "false_alarms": 2,
+     "compliant_runs_evaluated": 87
+    },
+    "far_0.1": {
+     "threshold": 0.8963402623728176,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.04597701149425287,
+     "target_far": 0.1,
+     "false_alarms": 4,
+     "compliant_runs_evaluated": 87
+    }
+   },
+   "D_prefix": {
+    "auroc_run_level": 0.43160919540229886,
+    "far_0.05": {
+     "threshold": 1.224744871391589,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.10344827586206896,
+     "target_far": 0.05,
+     "false_alarms": 9,
+     "compliant_runs_evaluated": 87
+    },
+    "far_0.1": {
+     "threshold": 1.2215635592051304,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.16091954022988506,
+     "target_far": 0.1,
+     "false_alarms": 14,
+     "compliant_runs_evaluated": 87
+    }
+   },
+   "keyword": {
+    "auroc_run_level": 0.5,
+    "far_0.05": {
+     "threshold": 0.0238095238095255,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.05,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 87
+    },
+    "far_0.1": {
+     "threshold": 0.0,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.1,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 87
+    }
+   },
+   "action_index": {
+    "auroc_run_level": 0.5,
+    "far_0.05": {
+     "threshold": 3.0,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.05,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 87
+    },
+    "far_0.1": {
+     "threshold": 3.0,
+     "detected_before_violation": 0,
+     "violating_runs_evaluated": 10,
+     "detection_rate": 0.0,
+     "realised_far": 0.0,
+     "target_far": 0.1,
+     "false_alarms": 0,
+     "compliant_runs_evaluated": 87
+    }
+   },
+   "n_violating": 10,
+   "n_compliant": 87
+  },
+  "H=4": {
+   "status": "insufficient runs at this horizon",
+   "n_violating": 3,
+   "n_compliant": 60
+  }
+ }
+}
