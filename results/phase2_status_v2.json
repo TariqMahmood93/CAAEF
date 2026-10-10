@@ -1,0 +1,44 @@
+{
+  "finished_at": "2026-10-10T01:11:53.820108+00:00",
+  "design_id": "extension-v2-plan-E",
+  "stopped_reason": "budget_headroom_reached",
+  "n_manifest": 480,
+  "n_already_done": 0,
+  "n_executed_now": 0,
+  "n_remaining": 480,
+  "terminations": {},
+  "spend_this_session_usd": 0.0,
+  "spend_total_usd": 4.704692329999995,
+  "wall_time_s": 0.2,
+  "ledger": {
+    "by_model": {
+      "anthropic/claude-haiku-5.5": {
+        "calls": 883,
+        "completion_tokens": 480745,
+        "prompt_tokens": 3501223,
+        "usd": 0.5904948000000003
+      },
+      "anthropic/claude-sonnet-5.5": {
+        "calls": 255,
+        "completion_tokens": 74314,
+        "prompt_tokens": 669425,
+        "usd": 2.081990000000001
+      },
+      "openai/gpt-6-luna": {
+        "calls": 534,
+        "completion_tokens": 319339,
+        "prompt_tokens": 1890471,
+        "usd": 0.30366563
+      },
+      "openai/gpt-6-sol": {
+        "calls": 317,
+        "completion_tokens": 85383,
+        "prompt_tokens": 875492,
+        "usd": 1.728541899999999
+      }
+    },
+    "calls": 1989,
+    "total_usd": 4.704692329999995
+  },
+  "runs": []
+}

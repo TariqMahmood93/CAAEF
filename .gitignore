@@ -8,3 +8,6 @@ traces/
 *.tar
 annotation/data.json
 annotation/index.html
+
+# Per-machine Claude Code settings
+.claude/settings.local.json

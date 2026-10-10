@@ -20,6 +20,7 @@ import os
 import sys
 import time
 from collections import Counter
+from pathlib import Path
 from datetime import datetime, timezone
 
 from caaef.config import RESULTS_DIR, load_config
@@ -27,7 +28,10 @@ from caaef.design import build_manifest, load_design, select_scenarios
 from caaef.llm import BudgetExceeded, Client, Ledger
 from caaef.runner import RunSpec, already_done, execute_run
 
-STATUS = RESULTS_DIR / "phase2_status.json"
+# Per-wave, so a second wave cannot overwrite the first wave's record. The original
+# run wrote results/phase2_status.json; that file is the reduced-20x2 wave's and must
+# stay as it is.
+STATUS = RESULTS_DIR / (os.environ.get("CAAEF_STATUS_FILE") or "phase2_status.json")
 
 # Headroom kept free so the last run cannot be cut off mid-flight, and so the judge
 # phase is not left unaffordable. Slightly above the most expensive run measured.
