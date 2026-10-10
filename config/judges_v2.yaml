@@ -52,14 +52,21 @@ judges:
     price_cache_read: null
     context: 128000
 
-  - name: nova-lite
-    id: amazon/nova-lite-v1
-    first_party_id: amazon.nova-lite-v1:0
-    family: amazon
-    price_in: 0.060
-    price_out: 0.240
+  # REPLACED 2026-10-10: Amazon nova-lite-v1 verified as present but failed the
+  # supported_parameters check — it does not advertise response_format support, so
+  # the judge's JSON-only reply contract (SYSTEM_PROMPT) cannot be enforced. Mistral
+  # mistral-nemo was picked from the catalog as the drop-in: different family (Mistral,
+  # not elsewhere in the study), tool- and response_format-capable, no ~latest alias
+  # so no mid-run version drift, cheaper than nova-lite ($0.03 vs $0.06 in / $0.03 vs
+  # $0.24 out) which pulls the full-wave projection from ~$8.48 to ~$7.0-7.5.
+  - name: mistral-nemo
+    id: mistralai/mistral-nemo
+    first_party_id: mistralai/Mistral-Nemo-Instruct-2407
+    family: mistral
+    price_in: 0.029
+    price_out: 0.030
     price_cache_read: null
-    context: 300000
+    context: 131072
 
 # Reasoning setting for the judging calls.
 #   The original two judges (opus-5.5, gpt-6.1-sol) were run with reasoning

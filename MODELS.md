@@ -62,7 +62,7 @@ is made.
 |---|---|---|---|---|
 | llama-3.1-8b | meta-llama/llama-3.1-8b-instruct | meta | 0.055 / 0.055 | **PENDING RUNTIME VERIFICATION** |
 | nemotron-3-super-120b | nvidia/nemotron-3-super-120b-a12b | nvidia | 0.145 / 0.580 | **PENDING RUNTIME VERIFICATION** |
-| nova-lite | amazon/nova-lite-v1 | amazon | 0.060 / 0.240 | **PENDING RUNTIME VERIFICATION** |
+| mistral-nemo | mistralai/mistral-nemo | mistral | 0.029 / 0.030 | **PENDING FULL VERIFICATION** (presence ok 2026-10-10; replaced amazon/nova-lite-v1 which lacked response_format support) |
 
 Determinism, context length and reasoning behaviour: all PENDING. Will be
 filled from `results/judges_v2_verified.json` once `verify_judges.py` has
