@@ -43,14 +43,22 @@ judges:
     price_cache_read: null
     context: 128000
 
-  - name: nemotron-3-super-120b
-    id: nvidia/nemotron-3-super-120b-a12b
-    first_party_id: nvidia/Nemotron-3-Super-120B-a12b
-    family: nvidia
-    price_in: 0.145
-    price_out: 0.580
+  # REPLACED 2026-10-10 (second swap): nvidia/nemotron-3-super-120b-a12b passed the
+  # presence+parameters check but is rate-limited upstream by DeepInfra. The smoke
+  # test hit HTTP 429 after 5 retries on the FIRST constraint call, which would make
+  # the full judging wave infeasible even if the smoke eventually squeezed through.
+  # Replacement: qwen/qwen3.7-flash — Qwen family (distinct from Meta and Mistral,
+  # the other two judges, and from Anthropic/OpenAI, the agents), $0.030/$0.130 per
+  # Mtok (cheaper than Nemotron's $0.145/$0.580), 1M context (handles the longest
+  # trajectories without truncation), no ~latest alias so no mid-run version drift.
+  - name: qwen3.7-flash
+    id: qwen/qwen3.7-flash
+    first_party_id: Qwen/Qwen3.7-Flash
+    family: qwen
+    price_in: 0.030
+    price_out: 0.130
     price_cache_read: null
-    context: 128000
+    context: 1000000
 
   # REPLACED 2026-10-10: Amazon nova-lite-v1 verified as present but failed the
   # supported_parameters check — it does not advertise response_format support, so

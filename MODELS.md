@@ -61,7 +61,7 @@ is made.
 | name | OpenRouter id | family | planned price in/out ($/Mtok) | status |
 |---|---|---|---|---|
 | llama-3.1-8b | meta-llama/llama-3.1-8b-instruct | meta | 0.055 / 0.055 | **PENDING RUNTIME VERIFICATION** |
-| nemotron-3-super-120b | nvidia/nemotron-3-super-120b-a12b | nvidia | 0.145 / 0.580 | **PENDING RUNTIME VERIFICATION** |
+| qwen3.7-flash | qwen/qwen3.7-flash | qwen | 0.030 / 0.130 | **PENDING FULL VERIFICATION** (presence ok, prices live; replaced nvidia/nemotron-3-super-120b-a12b which hit HTTP 429 rate-limiting on DeepInfra at the first smoke call) |
 | mistral-nemo | mistralai/mistral-nemo | mistral | 0.029 / 0.030 | **PENDING FULL VERIFICATION** (presence ok 2026-10-10; replaced amazon/nova-lite-v1 which lacked response_format support) |
 
 Determinism, context length and reasoning behaviour: all PENDING. Will be
