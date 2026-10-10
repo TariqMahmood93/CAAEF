@@ -103,17 +103,32 @@ def _assert_verified(slate: dict) -> None:
 
 
 def _list_traces(waves: list[dict], wave_filter: set[str] | None) -> list[tuple[str, Path]]:
-    """List (wave_name, trace_path) for every .jsonl trace in each wave's traces_dir."""
+    """List (wave_name, trace_path) for every .jsonl trace in each wave's traces_dir.
+
+    Excludes traces under any OTHER wave's traces_dir, so an "original-297" wave
+    rooted at `traces/` does not recursively pick up Plan E traces at `traces/v2/`.
+    Without this guard, every Plan E judgment would be enqueued twice (once per
+    wave) and the output file would carry duplicates.
+    """
     out = []
+    # Pre-compute every other wave's absolute traces_dir so we can filter them out.
+    all_dirs = {w["name"]: (REPO_ROOT / w["traces_dir"]).resolve() for w in waves}
     for w in waves:
         if wave_filter and w["name"] not in wave_filter:
             continue
-        tdir = REPO_ROOT / w["traces_dir"]
+        tdir = all_dirs[w["name"]]
         if not tdir.exists():
             print(f"wave {w['name']}: {tdir} not found; skipping")
             continue
-        traces = sorted(tdir.rglob("*.jsonl"))
-        print(f"wave {w['name']}: {len(traces)} traces under {tdir}")
+        other_dirs = [d for name, d in all_dirs.items() if name != w["name"]]
+        traces = []
+        for p in sorted(tdir.rglob("*.jsonl")):
+            rp = p.resolve()
+            if any(str(rp).startswith(str(d) + "/") for d in other_dirs):
+                continue  # belongs to a different wave; skip
+            traces.append(p)
+        print(f"wave {w['name']}: {len(traces)} traces under {tdir}"
+              f" (excluded {sum(1 for _ in tdir.rglob('*.jsonl')) - len(traces)} belonging to other waves)")
         for p in traces:
             out.append((w["name"], p))
     return out
