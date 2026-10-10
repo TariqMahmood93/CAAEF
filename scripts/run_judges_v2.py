@@ -50,7 +50,7 @@ from caaef.config import REPO_ROOT, RESULTS_DIR, load_config
 from caaef.judge import (
     JUDGE_REASONING, SYSTEM_PROMPT, _extract_json, render_trajectory,
 )
-from caaef.llm import BudgetExceeded, Client, Ledger, Model
+from caaef.llm import BudgetExceeded, Client, Ledger, LLMError, Model
 
 SLATE_PATH = REPO_ROOT / "config" / "judges_v2.yaml"
 VERIFIED_PATH = RESULTS_DIR / "judges_v2_verified.json"
@@ -224,23 +224,144 @@ def main() -> int:
     stopped = "completed"
     n_this = 0
 
-    # NOTE: unimplemented. The main loop goes here. For each (run, constraint,
-    # judge) in todo, re-use the trajectory render, make one call, parse one
-    # verdict, append to OUT, update stats. Pattern: scripts/judge_per_constraint.py
-    # lines 82-134. This scaffold stops here on purpose so the author reviews:
-    #
-    #   1. Which judges are in the slate (config/judges_v2.yaml)
-    #   2. The verification report (results/judges_v2_verified.json)
-    #   3. The planned job count (printed above)
-    #   4. The MODELS.md entries verify_judges.py has filled
-    #
-    # BEFORE any judging call is billed. Remove this NotImplementedError and
-    # paste in the per-call loop when ready.
-    raise NotImplementedError(
-        "SCAFFOLD STOP. See block comment above: approve the slate, run "
-        "verify_judges.py, then wire the per-call loop. Fail-closed by "
-        "design — rather than silently judge a slate the author has not yet "
-        "approved.")
+    # Group jobs by (wave, run_key) so the trajectory and constraint set are
+    # rendered once per run, not per (constraint, judge) tuple. Each run's
+    # trajectory can be 2-10kB; cutting it per-call keeps judging snappy.
+    from collections import defaultdict
+    by_run: dict[tuple[str, str], list[Judgment]] = defaultdict(list)
+    for j in todo:
+        by_run[(j.wave, j.run_key)].append(j)
+
+    print(f"\nunique runs with outstanding judgments: {len(by_run)}")
+    print(f"spend cap: ${cfg.route.spend_cap_usd:.2f}  headroom: ${HEADROOM_USD:.2f}")
+
+    judge_by_name = {j.name: j for j in judges}
+
+    with Client(cfg, ledger) as client:
+        eff_cap = client.enforce_credit_cap(reserve_usd=HEADROOM_USD)
+        print(f"effective cap after credit check: ${eff_cap:.4f}")
+        print(f"spent to date: ${ledger.total_usd:.4f}  usable: ${eff_cap - ledger.total_usd:.4f}\n")
+
+        with OUT.open("a", encoding="utf-8") as fh:
+            for n_run, ((wave, run_key), bucket) in enumerate(sorted(by_run.items()), 1):
+                if ledger.remaining_usd <= HEADROOM_USD:
+                    stopped = "budget_headroom_reached"
+                    print(f"\nSTOPPING cleanly: ${ledger.remaining_usd:.4f} remaining, "
+                          f"headroom ${HEADROOM_USD:.4f}")
+                    break
+
+                # Resolve the trace path for this run_key by scanning the wave's dir.
+                wave_entry = next(w for w in waves if w["name"] == wave)
+                traces_dir = REPO_ROOT / wave_entry["traces_dir"]
+                matches = list(traces_dir.rglob(f"{run_key}.jsonl"))
+                if not matches:
+                    stats["trace_missing"] += 1
+                    print(f"  [{n_run}/{len(by_run)}] SKIP {run_key[:60]} (trace file missing)")
+                    continue
+                try:
+                    trace = load_run(matches[0])
+                    sc = load_constraints(trace.scenario)
+                    traj = render_trajectory(trace)
+                except Exception as exc:
+                    stats["load_fail"] += 1
+                    print(f"  [{n_run}/{len(by_run)}] SKIP {run_key[:60]} ({exc!r})")
+                    continue
+
+                con_by_id = {c.id: c for c in sc.constraints}
+                raw_by_id = {r.get("id"): r for r in sc.raw}
+
+                for job in bucket:
+                    if ledger.remaining_usd <= HEADROOM_USD:
+                        stopped = "budget_headroom_reached"; break
+                    con = con_by_id.get(job.constraint_id)
+                    if con is None:
+                        stats["constraint_gone"] += 1
+                        continue
+                    raw = raw_by_id.get(job.constraint_id, {})
+                    user = (
+                        f"{traj}\n\n=== THE SINGLE CONSTRAINT TO JUDGE ===\n"
+                        f"- id: {con.id}\n  covers: {con.scope}\n"
+                        f"  type: {con.modality} ({con.cls})\n  applies: {con.condition}\n"
+                        f"  requirement: {raw.get('statement','').strip()}\n\n"
+                        f"The run has {trace.n_actions} recorded actions, numbered 1 to "
+                        f"{trace.n_actions}. Return exactly one verdict."
+                    )
+                    judge = judge_by_name[job.judge_name]
+                    try:
+                        comp = client.complete(
+                            model=judge,
+                            messages=[
+                                {"role": "system", "content": SINGLE_PROMPT},
+                                {"role": "user", "content": user},
+                            ],
+                            response_format={"type": "json_object"},
+                        )
+                    except BudgetExceeded as exc:
+                        stopped = "budget_exceeded"; print(f"\n{exc}"); break
+                    except LLMError as exc:
+                        stats["llm_error"] += 1
+                        rec = {
+                            "run_key": job.run_key, "scenario": trace.scenario,
+                            "constraint_id": job.constraint_id, "judge": job.judge_name,
+                            "wave": job.wave, "violated": None,
+                            "first_violating_action": None, "confidence": None,
+                            "parsed_ok": False, "error": str(exc)[:300],
+                            "cost_usd": 0.0,
+                        }
+                        fh.write(json.dumps(rec, ensure_ascii=False) + "\n"); fh.flush()
+                        continue
+                    obj = _extract_json(comp.content or "") or {}
+                    vs = obj.get("verdicts") or []
+                    item = vs[0] if vs else {}
+                    violated = bool(item.get("violated"))
+                    first = item.get("first_violating_action")
+                    if violated and isinstance(first, int):
+                        action = min(max(first, 1), trace.n_actions) if trace.n_actions else None
+                    elif violated:
+                        action = trace.n_actions or None
+                    else:
+                        action = None
+                    rec = {
+                        "run_key": job.run_key, "scenario": trace.scenario,
+                        "constraint_id": job.constraint_id, "judge": job.judge_name,
+                        "wave": job.wave,
+                        "violated": violated,
+                        "first_violating_action": action,
+                        "confidence": str(item.get("confidence", "")).lower() or None,
+                        "reason": str(item.get("reason", ""))[:MAX_REASON_CHARS],
+                        "parsed_ok": bool(vs),
+                        "cost_usd": comp.usage.cost_usd if comp.usage else 0.0,
+                        "prompt_tokens": comp.usage.prompt_tokens if comp.usage else None,
+                        "completion_tokens": comp.usage.completion_tokens if comp.usage else None,
+                    }
+                    fh.write(json.dumps(rec, ensure_ascii=False) + "\n"); fh.flush()
+                    n_this += 1
+                    stats["judged"] += 1
+                    if not vs: stats["parse_fail"] += 1
+                    if violated: stats["violated"] += 1
+                if stopped != "completed": break
+                if n_run % 20 == 0 or n_run <= 3:
+                    print(f"  [{n_run}/{len(by_run)}] run={run_key[:48]}  "
+                          f"session=${ledger.total_usd - started_total:.4f}  "
+                          f"total=${ledger.total_usd:.4f}", flush=True)
+
+    _write_status(
+        stopped=stopped,
+        n_jobs_total=len(jobs),
+        n_already_done=len(done),
+        n_executed_this_session=n_this,
+        spend_this_session_usd=ledger.total_usd - started_total,
+        spend_total_usd=ledger.total_usd,
+        stats=dict(stats),
+    )
+    print(f"\n=== summary ===")
+    print(f"stopped       : {stopped}")
+    for k, v in sorted(stats.items()):
+        print(f"{k:<16}: {v}")
+    print(f"spend session : ${ledger.total_usd - started_total:.4f}")
+    print(f"spend total   : ${ledger.total_usd:.4f}")
+    print(f"wrote {OUT}")
+    return 0
 
 
 if __name__ == "__main__":
