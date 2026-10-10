@@ -100,7 +100,13 @@ def main() -> int:
     for p in traces:
         print(f"  {p}")
 
-    ledger = Ledger(SMOKE_CAP_USD)
+    # Use the project's spend cap for the Ledger (so the persistent ledger file is
+    # consistent) and track an INCREMENTAL smoke budget relative to the ledger's
+    # current total. An absolute cap of $0.50 was wrong — the ledger already carries
+    # the ~$12 of previous spend, so a $0.50 absolute cap triggers "stop" instantly.
+    ledger = Ledger(cfg.route.spend_cap_usd)
+    smoke_start = ledger.total_usd
+    smoke_budget_remaining = lambda: SMOKE_CAP_USD - (ledger.total_usd - smoke_start)
     report: dict = {
         "slate": [j.name for j in judges],
         "n_runs_sampled": len(traces),
@@ -111,16 +117,17 @@ def main() -> int:
 
     stopped = "completed"
     with Client(cfg, ledger) as client:
-        print(f"\nspend cap for smoke: ${SMOKE_CAP_USD:.2f}")
+        print(f"\nspend cap for smoke (incremental): ${SMOKE_CAP_USD:.2f}")
+        print(f"ledger total before smoke: ${smoke_start:.4f}")
         for path in traces:
             trace = load_run(path)
             sc = load_constraints(trace.scenario)
             traj = render_trajectory(trace)
             print(f"\n{trace.header['run_key'][:60]}  ({len(sc.constraints)} constraints)")
             for con in sc.constraints:
-                if ledger.remaining_usd <= 0.05:
+                if smoke_budget_remaining() <= 0.02:
                     stopped = "smoke_cap_hit"
-                    print("  stopping smoke early: $0.05 remaining"); break
+                    print(f"  stopping smoke early: ${smoke_budget_remaining():.4f} of smoke budget left"); break
                 raw = next((r for r in sc.raw if r.get("id") == con.id), {})
                 user = (
                     f"{traj}\n\n=== THE SINGLE CONSTRAINT TO JUDGE ===\n"
@@ -131,7 +138,7 @@ def main() -> int:
                     f"{trace.n_actions}. Return exactly one verdict."
                 )
                 for judge in judges:
-                    if ledger.remaining_usd <= 0.05:
+                    if smoke_budget_remaining() <= 0.02:
                         stopped = "smoke_cap_hit"; break
                     try:
                         comp = client.complete(
@@ -193,7 +200,9 @@ def main() -> int:
     for jname, cost in projected.items():
         print(f"  {jname:<24}  ~{full_calls_per_judge} calls  ~${cost:.2f}")
     print(f"  {'TOTAL':<24}  ~${sum(projected.values()):.2f}")
-    print(f"\nspend in this smoke: ${ledger.total_usd:.4f}")
+    smoke_spent = ledger.total_usd - smoke_start
+    print(f"\nspend in this smoke: ${smoke_spent:.4f}")
+    print(f"ledger total now:    ${ledger.total_usd:.4f}")
     print(f"stopped: {stopped}")
 
     report["projection"] = {
@@ -201,7 +210,8 @@ def main() -> int:
         "per_judge_cost_usd": projected,
         "total_cost_usd": sum(projected.values()),
     }
-    report["smoke_spend_usd"] = ledger.total_usd
+    report["smoke_spend_usd"] = smoke_spent
+    report["ledger_total_after_usd"] = ledger.total_usd
     report["stopped"] = stopped
     OUT.write_text(json.dumps(report, indent=2, default=str))
     print(f"\nwrote {OUT}")
