@@ -1,0 +1,67 @@
+nohup: ignoring input
+wave original-297: 303 traces under /home/tariq/Desktop/caaef-experiment/traces (excluded 480 belonging to nested waves)
+wave plan-e-480: 480 traces under /home/tariq/Desktop/caaef-experiment/traces/v2
+
+slate       : ['llama-3.1-8b', 'qwen3.7-flash', 'mistral-nemo']
+waves       : ['original-297', 'plan-e-480']
+total jobs  : 15357
+already done: 0
+todo        : 15357
+
+unique runs with outstanding judgments: 783
+spend cap: $50.00  headroom: $0.40
+effective cap after credit check: $21.5892
+spent to date: $12.2864  usable: $9.3028
+
+  [1/783] run=gpt-6-luna__on__incentivized__Ai-Education-Assis  session=$0.0020  total=$12.2884
+  [2/783] run=gpt-6-luna__on__incentivized__Ai-Education-Assis  session=$0.0036  total=$12.2900
+  [3/783] run=gpt-6-luna__on__incentivized__Ai-Hiring-Assistan  session=$0.0053  total=$12.2917
+  [20/783] run=gpt-6-luna__on__incentivized__Diagnostic-Oversig  session=$0.0411  total=$12.3275
+  [40/783] run=gpt-6-luna__on__mandated__Ai-Moderator-Content-C  session=$0.0890  total=$12.3754
+  [60/783] run=gpt-6-luna__on__mandated__Healthcare-Quality-Ass  session=$0.1338  total=$12.4202
+  [80/783] run=gpt-6-sol__on__incentivized__Clinical-Trial-Inte  session=$0.1774  total=$12.4638
+  [100/783] run=gpt-6-sol__on__mandated__Ai-Healthcare-Resource-  session=$0.2285  total=$12.5149
+  [120/783] run=gpt-6-sol__on__mandated__Drone-Delivery-Optimize  session=$0.2702  total=$12.5566
+  [140/783] run=haiku-5.5__off__incentivized__Diagnostic-Oversig  session=$0.3145  total=$12.6009
+  [160/783] run=haiku-5.5__off__mandated__Clinical-Trial-Integri  session=$0.3612  total=$12.6476
+  [180/783] run=haiku-5.5__on__incentivized__Ai-Moderator-Conten  session=$0.4055  total=$12.6919
+  [200/783] run=haiku-5.5__on__incentivized__Healthcare-Quality-  session=$0.4501  total=$12.7365
+  [220/783] run=haiku-5.5__on__mandated__Ai-Transport-Fleet-Safe  session=$0.4897  total=$12.7761
+  [240/783] run=sonnet-5.5__on__incentivized__Ai-Education-Assis  session=$0.5327  total=$12.8191
+  [260/783] run=sonnet-5.5__on__incentivized__Drone-Delivery-Opt  session=$0.5735  total=$12.8599
+  [280/783] run=sonnet-5.5__on__mandated__Ai-Pharma-Quality-Cont  session=$0.6108  total=$12.8972
+  [300/783] run=sonnet-5.5__on__mandated__Healthcare-Trial-Recru  session=$0.6505  total=$12.9369
+  [320/783] run=gpt-6-luna__on__incentivized__Ai-Public-Health-M  session=$0.6924  total=$12.9788
+  [340/783] run=gpt-6-luna__on__incentivized__Educational-Assess  session=$0.7456  total=$13.0320
+  [360/783] run=gpt-6-luna__on__incentivized__Roboadvisor-Ethics  session=$0.7945  total=$13.0809
+  [380/783] run=gpt-6-luna__on__mandated__Ai-Public-Health-Monit  session=$0.8449  total=$13.1313
+  [400/783] run=gpt-6-luna__on__mandated__Educational-Assessment  session=$0.8980  total=$13.1844
+  [420/783] run=gpt-6-luna__on__mandated__Roboadvisor-Ethicsbypa  session=$0.9475  total=$13.2339
+  [440/783] run=gpt-6-sol__on__incentivized__Ai-Public-Health-Mo  session=$0.9982  total=$13.2846
+  [460/783] run=gpt-6-sol__on__incentivized__Educational-Assessm  session=$1.0551  total=$13.3415
+  [480/783] run=gpt-6-sol__on__incentivized__Roboadvisor-Ethicsb  session=$1.1043  total=$13.3907
+  [500/783] run=gpt-6-sol__on__mandated__Ai-Public-Health-Monito  session=$1.1580  total=$13.4444
+  [520/783] run=gpt-6-sol__on__mandated__Educational-Assessment_  session=$1.2173  total=$13.5037
+  [540/783] run=gpt-6-sol__on__mandated__Roboadvisor-Ethicsbypas  session=$1.2660  total=$13.5524
+  [560/783] run=haiku-5.5__on__incentivized__Ai-Public-Health-Mo  session=$1.3129  total=$13.5993
+  [580/783] run=haiku-5.5__on__incentivized__Educational-Assessm  session=$1.3738  total=$13.6602
+  [600/783] run=haiku-5.5__on__incentivized__Roboadvisor-Ethicsb  session=$1.4203  total=$13.7067
+  [620/783] run=haiku-5.5__on__mandated__Ai-Public-Health-Monito  session=$1.4642  total=$13.7506
+  [640/783] run=haiku-5.5__on__mandated__Educational-Assessment_  session=$1.5239  total=$13.8103
+  [660/783] run=haiku-5.5__on__mandated__Roboadvisor-Ethicsbypas  session=$1.5669  total=$13.8533
+  [680/783] run=sonnet-5.5__on__incentivized__Ai-Public-Health-M  session=$1.6049  total=$13.8913
+  [700/783] run=sonnet-5.5__on__incentivized__Educational-Assess  session=$1.6509  total=$13.9373
+  [720/783] run=sonnet-5.5__on__incentivized__Roboadvisor-Ethics  session=$1.6908  total=$13.9772
+  [740/783] run=sonnet-5.5__on__mandated__Ai-Public-Health-Monit  session=$1.7285  total=$14.0149
+  [760/783] run=sonnet-5.5__on__mandated__Educational-Assessment  session=$1.7734  total=$14.0598
+  [780/783] run=sonnet-5.5__on__mandated__Roboadvisor-Ethicsbypa  session=$1.8094  total=$14.0958
+
+=== summary ===
+stopped       : completed
+judged          : 15351
+llm_error       : 6
+parse_fail      : 6
+violated        : 2731
+spend session : $1.8160
+spend total   : $14.1024
+wrote /home/tariq/Desktop/caaef-experiment/results/judge_v2.jsonl

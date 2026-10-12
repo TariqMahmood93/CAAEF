@@ -12,6 +12,24 @@
       "prompt_tokens": 1968661,
       "usd": 5.855632000000005
     },
+    "meta-llama/llama-3.1-8b-instruct": {
+      "calls": 5166,
+      "completion_tokens": 327466,
+      "prompt_tokens": 13143496,
+      "usd": 0.3542275319999997
+    },
+    "mistralai/mistral-nemo": {
+      "calls": 5165,
+      "completion_tokens": 310268,
+      "prompt_tokens": 14616269,
+      "usd": 0.4067540700000011
+    },
+    "nvidia/nemotron-3-super-120b-a12b": {
+      "calls": 1,
+      "completion_tokens": 300,
+      "prompt_tokens": 1500,
+      "usd": 0.000255
+    },
     "openai/gpt-6-luna": {
       "calls": 1082,
       "completion_tokens": 491559,
@@ -23,8 +41,14 @@
       "completion_tokens": 250581,
       "prompt_tokens": 2615302,
       "usd": 5.002184799999999
+    },
+    "qwen/qwen3.7-flash": {
+      "calls": 5164,
+      "completion_tokens": 5754278,
+      "prompt_tokens": 14554714,
+      "usd": 1.0704079339999977
     }
   },
-  "calls": 4134,
-  "total_usd": 12.270731054999954
+  "calls": 19630,
+  "total_usd": 14.102375591000005
 }

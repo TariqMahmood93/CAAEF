@@ -1,0 +1,15 @@
+{
+  "updated_at": "2026-10-11T23:58:39.994301+00:00",
+  "stopped": "completed",
+  "n_jobs_total": 15357,
+  "n_already_done": 0,
+  "n_executed_this_session": 15351,
+  "spend_this_session_usd": 1.8159814658000446,
+  "spend_total_usd": 14.102375591000005,
+  "stats": {
+    "judged": 15351,
+    "violated": 2731,
+    "parse_fail": 6,
+    "llm_error": 6
+  }
+}
