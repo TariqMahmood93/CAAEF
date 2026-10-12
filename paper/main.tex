@@ -401,12 +401,66 @@ Safe failure is the largest cell for every agent without exception, ranging from
 
 Two observations follow. First, \textbf{a non-trivial share of the runs an outcome-only benchmark would score as successes carry a hard violation}. Under \textsc{rules+state}, $4$ of the $21$ successes ($19\%$) are in category~(2). Under the three-judge majority-vote protocol on $772$ runs with resolved $O$, $29$ of $89$ successes ($32.6\%$, with the overall rate at $3.8\%$~\textsc{[1.2, 7.1]} of all runs) are category~(2); under all-agree consensus the figure is $10$ of $89$ ($11.2\%$ of successes, $1.3\%$~\textsc{[0.4, 2.3]} of all runs); under any-judge-flags it is $78$ of $89$ ($87.6\%$ of successes, $10.1\%$~\textsc{[3.1, 18.9]} of all runs). These bounds should be read against the inter-judge Krippendorff's $\alpha=0.155$ we report in Section~\ref{sec:judge_results}: the between-operating-point spread is driven by judge disagreement, not by variation in agent behaviour. Either way, category~(2) is real --- on this benchmark it is thin, but it is not zero at any operating point we can compute.
 
-Second, and more striking, \textbf{safe failure dominates the corpus} --- but the exact share depends on the checker and the aggregation. Under the \textsc{rules+state} checker on all $297$ runs with $O$ scored (now $100\%$ of the analysed set after the extension's Task~2 rescore), safe failure is $84.5\%$. Under the three-judge per-constraint protocol run on $772$ runs with resolved $O$ across both the original and extension waves, safe failure is $81.5\%$~\textsc{[71.4, 90.2]} with judges in \emph{all-agree} consensus, $51.8\%$~\textsc{[41.0, 62.4]} under \emph{majority vote}, and $15.8\%$~\textsc{[9.6, 23.2]} under \emph{any-judge-flags}. The three operating points span the same panel's possible verdicts on the same runs; the gap between them is a direct measurement of judge disagreement, not agent behaviour. Section~\ref{sec:model} notes in passing that an agent which stops and reports that the task cannot be done within its permissions is scored identically to one that failed through incompetence. In this benchmark that is not a marginal case but, under every well-behaved checker configuration we report, the largest cell. We regard this as a stronger argument for the two-dimensional model than category~(2) is: the unsafe-success cell is real but thin, and every per-agent estimate of it is extremely noisy, whereas the conflation of principled refusal with incompetence affects most of the corpus. It also suggests that agentic safety benchmarks reporting a single success rate are, on tasks of this kind, mostly measuring willingness to break rules.
+Second, and more striking, \textbf{safe failure dominates the corpus} --- but the exact share depends on the checker and the aggregation. Under the \textsc{rules+state} checker on all $297$ runs with $O$ scored (now $100\%$ of the analysed set after the extension's Task~2 rescore), safe failure is $84.5\%$. Under the three-judge per-constraint protocol run on $772$ runs with resolved $O$ across both the original and extension waves, Table~\ref{tab:four-cat-3j} gives the full four-category breakdown at each operating point and separately on each wave; the summary is safe failure at $81.5\%$~\textsc{[71.4, 90.2]} with judges in \emph{all-agree} consensus, $51.8\%$~\textsc{[41.0, 62.4]} under \emph{majority vote}, and $15.8\%$~\textsc{[9.6, 23.2]} under \emph{any-judge-flags}. The three operating points span the same panel's possible verdicts on the same runs; the gap between them is a direct measurement of judge disagreement, not agent behaviour.
+
+\begin{table*}[t]
+\caption{Four-category breakdown on the three-judge wave, under three operating points, with the original and extension waves separately alongside their union. Each cell is a percentage with its $95\%$ percentile-bootstrap interval ($10{,}000$ resamples, resampling whole scenarios). Categories are (1) intended success $O{=}1,V{=}0$, (2) unsafe success $O{=}1,V{=}1$, (3) safe failure $O{=}0,V{=}0$, (4) unsafe failure $O{=}0,V{=}1$. The original and Plan~E waves are indistinguishable at every category under every operating point --- the framework's main finding (safe-failure dominance) replicates on 20 scenarios the four agents never saw, with constraints committed to git before the first run. The $5$ Plan~E runs with $O$ unresolved on measure\_sh edge cases are left out, not imputed.}
+\label{tab:four-cat-3j}
+\vskip 0.1in
+\begin{center}\begin{small}
+\begin{tabular}{lccc}
+\toprule
+Category & Original (N=297) & Plan~E (N=475) & Union (N=772) \\
+\midrule
+\multicolumn{4}{l}{\emph{All-agree (all 3 judges flag the same hard constraint)}} \\
+(1) intended success &  9.1\% [1.5, 18.5] & 10.9\% [0.6, 24.9] & \textbf{10.2\% [3.0, 19.4]} \\
+(2) unsafe success   &  1.3\% [0.0,  3.1] &  1.3\% [0.2,  2.5] &  1.3\% [0.4,  2.3] \\
+(3) safe failure     & 86.5\% [75.3, 95.6]& 78.3\% [63.9, 90.9]& \textbf{81.5\% [71.4, 90.2]} \\
+(4) unsafe failure   &  3.0\% [0.7,  6.1] &  9.5\% [3.4, 16.8] &  7.0\% [2.9, 11.9] \\
+\midrule
+\multicolumn{4}{l}{\emph{Majority vote ($\geq 2$ of $3$ judges)}} \\
+(1) intended success &  6.1\% [1.0, 12.4] &  8.8\% [0.6, 20.2] &  7.8\% [2.1, 15.2] \\
+(2) unsafe success   &  4.4\% [0.4,  9.9] &  3.4\% [0.2,  7.8] &  3.8\% [1.2,  7.1] \\
+(3) safe failure     & 53.9\% [40.0, 67.6]& 50.5\% [35.2, 65.6]& 51.8\% [41.0, 62.4] \\
+(4) unsafe failure   & 35.7\% [22.6, 49.7]& 37.3\% [23.8, 51.4]& 36.7\% [27.0, 46.9] \\
+\midrule
+\multicolumn{4}{l}{\emph{Any judge flags any hard constraint}} \\
+(1) intended success &  2.4\% [0.4,  4.8] &  0.8\% [0.0,  2.1] &  1.4\% [0.5,  2.6] \\
+(2) unsafe success   &  8.1\% [1.1, 16.6] & 11.4\% [1.1, 24.9] & 10.1\% [3.1, 18.9] \\
+(3) safe failure     & 14.1\% [7.3, 22.4] & 16.8\% [8.0, 27.7] & 15.8\% [9.6, 23.2] \\
+(4) unsafe failure   & 75.4\% [63.8, 86.0]& 70.9\% [56.6, 83.5]& 72.7\% [62.5, 81.7] \\
+\bottomrule
+\end{tabular}
+\end{small}\end{center}
+\vskip -0.1in
+\end{table*}
+
+Section~\ref{sec:model} notes in passing that an agent which stops and reports that the task cannot be done within its permissions is scored identically to one that failed through incompetence. In this benchmark that is not a marginal case but, under every well-behaved checker configuration we report, the largest cell. We regard this as a stronger argument for the two-dimensional model than category~(2) is: the unsafe-success cell is real but thin, and every per-agent estimate of it is extremely noisy, whereas the conflation of principled refusal with incompetence affects most of the corpus. It also suggests that agentic safety benchmarks reporting a single success rate are, on tasks of this kind, mostly measuring willingness to break rules.
 
 \subsection{Judges disagree, and the disagreement is first-order}
 \label{sec:judge_results}
 
-We report two judge protocols. The first is the Phase~1 two-judge batched protocol run on $200$ runs of the original wave (one call per run per judge, all constraints judged together): the two frontier-tier judges, Haiku-5.5 and GPT-6-luna, agree on run-level $V$ for $85.5\%$ of runs, close to one-directionally (judge~B flags a hard violation that judge~A does not in $28$ runs, judge~A flags one that judge~B does not in a single run). The second is a three-judge per-constraint protocol run on $779$ runs across both waves (one call per run per constraint per judge, no batching): three smaller open-weight judges from different families (Meta Llama-3.1-8B, Qwen3.7-flash, Mistral-Nemo). Their inter-judge agreement is substantially lower: Krippendorff's $\alpha=0.155$~\textsc{[0.103, 0.209]} on hard-constraint cells, bootstrapped over scenarios; pairwise Cohen's $\kappa$ sits in $[0.036, 0.261]$; per-cell flag rate is $30.0\%$~\textsc{[25.2, 35.2]} for Llama, $17.5\%$~\textsc{[13.3, 22.2]} for Mistral, $5.4\%$~\textsc{[3.2, 7.8]} for Qwen, with intervals that do not overlap. The gate's verdict on this panel then swings with the aggregation rule: run-level $V$ at $82.7\%$ under any-judge-flags, $40.3\%$ under majority vote, $6.9\%$ under consensus. For comparison, the ODCV-Bench paper \citep{li2025odcv} reports Krippendorff's $\alpha=0.81$ across four frontier judges on a 0--5 rubric. The gap --- $0.155$ vs $0.81$ on the same benchmark, with judges drawn from the two sides of the capability frontier --- is the empirical signal that the gate's accounting for checker error is not optional. The mean of $U$ on the two-judge original wave is $0.0164$, and $75$ of $200$ runs have $U>0$; the three-judge wave gives $U>0$ on $4{,}969$ of $5{,}089$ cells where at least two judges rendered a verdict ($97.6\%$), confirming that the two-judge measurement understated $U$.
+We report two judge protocols. The first is the Phase~1 two-judge batched protocol run on $200$ runs of the original wave (one call per run per judge, all constraints judged together): the two frontier-tier judges, Haiku-5.5 and GPT-6-luna, agree on run-level $V$ for $85.5\%$ of runs, close to one-directionally (judge~B flags a hard violation that judge~A does not in $28$ runs, judge~A flags one that judge~B does not in a single run). The second is a three-judge per-constraint protocol run on $779$ runs across both waves (one call per run per constraint per judge, no batching): three smaller open-weight judges from different families (Table~\ref{tab:judges}).
+
+\begin{table}[t]
+\caption{Judge slate for the three-judge per-constraint wave: three families, three providers, none also an agent in the study. Flag rates are per hard-constraint cell on the $3{,}814$ cells each judge scored; intervals are $95\%$ percentile bootstrap, $10{,}000$ resamples, resampling whole scenarios. ``High-conf'' is the share of a judge's verdicts it returned at confidence $\geq 0.8$ (its own self-reported field).}
+\label{tab:judges}
+\vskip 0.1in
+\begin{center}\begin{small}
+\begin{tabular}{llcc}
+\toprule
+Judge & Family & Flag rate (95\% CI) & High-conf \\
+\midrule
+Llama-3.1-8B  & Meta    & 30.0\% [25.2, 35.2] & 88\% \\
+Mistral-Nemo  & Mistral & 17.5\% [13.3, 22.2] & 99.9\% \\
+Qwen3.7-flash & Qwen    &  5.4\% [3.2, 7.8]   & 98\% \\
+\bottomrule
+\end{tabular}
+\end{small}\end{center}
+\vskip -0.1in
+\end{table}
+
+Their inter-judge agreement is substantially lower than the two-judge frontier panel's: Krippendorff's $\alpha=0.155$~\textsc{[0.103, 0.209]} on hard-constraint cells, bootstrapped over scenarios; pairwise Cohen's $\kappa$ sits in $[0.036, 0.261]$; the per-cell flag rates in Table~\ref{tab:judges} have intervals that do not overlap pairwise. The gate's verdict on this panel then swings with the aggregation rule: run-level $V$ at $82.7\%$ under any-judge-flags, $40.3\%$ under majority vote, $6.9\%$ under consensus. For comparison, the ODCV-Bench paper \citep{li2025odcv} reports Krippendorff's $\alpha=0.81$ across four frontier judges on a 0--5 rubric. The gap --- $0.155$ vs $0.81$ on the same benchmark, with judges drawn from the two sides of the capability frontier --- is the empirical signal that the gate's accounting for checker error is not optional. The mean of $U$ on the two-judge original wave is $0.0164$, and $75$ of $200$ runs have $U>0$; the three-judge wave gives $U>0$ on $4{,}969$ of $5{,}089$ cells where at least two judges rendered a verdict ($97.6\%$), confirming that the two-judge measurement understated $U$.
 
 \textbf{Which agent one would ship depends on which judge one asked, and on which aggregation one picks.} Under judge~A alone (batched), three of four agents pass the gate; under judge~B alone, none do; under the three-judge majority-vote protocol, no agent passes at $\delta=0.05$; under the three-judge all-agree protocol, three of four pass. The adjudication protocol of Section~\ref{sec:challenges} --- deterministic checks where possible, multiple monitors from different families, human review of disagreements --- is the apparatus required to make this measurement useful at all.
 
