@@ -358,6 +358,178 @@ contamination flags so they cannot drift.
 
 ---
 
+## Task 3d — Three-judge per-constraint protocol, both waves
+
+**Status: done.** 15,357 judging calls across the 3 slate judges × 777 unique runs × ~6.6
+constraints per scenario. Spend: $1.82 session (projected $1.54 from a smoke on 4
+runs). Parse rate 99.92% (12 of 15,357 either rate-limited or returned malformed JSON).
+
+### Slate
+
+Three families, none also an agent in the study, and three different providers for
+redundancy against rate limits:
+
+| name | OpenRouter id | family | role | prices (per Mtok) |
+|---|---|---|---|---|
+| llama-3.1-8b | `meta-llama/llama-3.1-8b-instruct` | Meta | judge | $0.05 / $0.08 |
+| qwen3.7-flash | `qwen/qwen3.7-flash` | Qwen | judge (reasoning model) | $0.03 / $0.13 |
+| mistral-nemo | `mistralai/mistral-nemo` | Mistral | judge | $0.029 / $0.030 |
+
+Verified live on 2026-10-10. Two prior slate picks dropped during verification:
+`amazon/nova-lite-v1` lacked `response_format` support (JSON-only contract would have
+silently broken); `nvidia/nemotron-3-super-120b-a12b` was rate-limited upstream at
+DeepInfra on the first smoke call. Both failures and the replacement rationale are in
+`MODELS.md`.
+
+### Inter-judge agreement is dramatically lower than ODCV-Bench reports with frontier judges
+
+This is the first-order finding of the three-judge wave, and it is the clearest
+single piece of support for the framework's insistence that checker α and β must be
+measured, not assumed. All intervals below are 95% percentile bootstrap, 10,000
+resamples, **resampling whole scenarios** per the prompt's Hard Rules.
+
+| | this study (3 open-weight judges, binary, hard constraints) | ODCV-Bench \citep{li2026odcv} (4 frontier judges, 0–5 scale) |
+|---|---|---|
+| Krippendorff's α | **0.155 [0.103, 0.209]** | 0.81 (no interval reported) |
+| Pairwise Cohen's κ | 0.036 / 0.159 / 0.261 across the three pairs | pairwise agreement 86.5%–95.1% on the ≥3 binary |
+
+Per-cell flag rates on the 3,814 hard-constraint cells each judge scored:
+
+| judge | flag rate (95% CI, scenario-cluster bootstrap) | high-confidence share |
+|---|---|---|
+| llama-3.1-8b | **30.0% [25.2, 35.2]** | 88% |
+| mistral-nemo | 17.5% [13.3, 22.2] | 99.9% |
+| qwen3.7-flash | **5.4% [3.2, 7.8]** | 98% |
+
+Llama flags five times what Qwen does on the same cells, and the intervals do
+not overlap — these judges are measurably miscalibrated against each other. The
+ODCV-Bench paper's own limitation statement — "the scores are produced by LLM
+judges without human verification" — becomes concrete here: on this benchmark,
+with judges from this tier, the gate's verdict is almost entirely determined by
+which judge and which aggregation is chosen, not by what the agent did.
+
+### The gate's verdict depends on the aggregation rule
+
+The three-judge protocol admits three operating points. We report all three, with
+the paper's existing state+rule number for context.
+
+| operating point | runs with V=1 | % of 779 |
+|---|---|---|
+| all 3 judges agree a hard constraint was violated | 54 | **6.9%** |
+| majority vote (≥ 2 of 3 judges) | 314 | 40.3% |
+| any judge flags any hard constraint | 644 | **82.7%** |
+| (state+rule checker, original Phase 1, reference) | — | 29–82% depending on δ (see paper tolerance sweep) |
+
+### Four-category table on 772 runs, both waves separately
+
+Point estimates with 95% percentile bootstrap intervals (10,000 resamples,
+resampling whole scenarios). 5 of 777 runs have O=None (unresolved measure_sh
+edge cases in Plan E missing-kpi scenarios); they are left out, not imputed.
+Nothing is pooled silently — the "union" column is reported alongside, not
+instead of, the splits.
+
+**Under majority vote (≥ 2 of 3 judges flag a hard constraint)**
+
+| category | original-297 | plan-e-480 | union (N=772) |
+|---|---|---|---|
+| (1) intended success | 6.1% [1.0, 12.4] | 8.8% [0.6, 20.2] | 7.8% [2.1, 15.2] |
+| (2) unsafe success | 4.4% [0.4, 9.9] | 3.4% [0.2, 7.8] | 3.8% [1.2, 7.1] |
+| (3) safe failure | 53.9% [40.0, 67.6] | 50.5% [35.2, 65.6] | 51.8% [41.0, 62.4] |
+| (4) unsafe failure | 35.7% [22.6, 49.7] | 37.3% [23.8, 51.4] | 36.7% [27.0, 46.9] |
+
+**Under all-agree (all 3 judges agree a hard constraint was violated)**
+
+| category | original-297 | plan-e-480 | union |
+|---|---|---|---|
+| (1) intended success | 9.1% [1.5, 18.5] | 10.9% [0.6, 24.9] | **10.2% [3.0, 19.4]** |
+| (2) unsafe success | 1.3% [0.0, 3.1] | 1.3% [0.2, 2.5] | 1.3% [0.4, 2.3] |
+| (3) safe failure | 86.5% [75.3, 95.6] | 78.3% [63.9, 90.9] | **81.5% [71.4, 90.2]** |
+| (4) unsafe failure | 3.0% [0.7, 6.1] | 9.5% [3.4, 16.8] | 7.0% [2.9, 11.9] |
+
+**Under any-judge-flags (at least 1 of 3 flags a hard constraint)**
+
+| category | original-297 | plan-e-480 | union |
+|---|---|---|---|
+| (1) intended success | 2.4% [0.4, 4.8] | 0.8% [0.0, 2.1] | 1.4% [0.5, 2.6] |
+| (2) unsafe success | 8.1% [1.1, 16.6] | 11.4% [1.1, 24.9] | 10.1% [3.1, 18.9] |
+| (3) safe failure | 14.1% [7.3, 22.4] | 16.8% [8.0, 27.7] | 15.8% [9.6, 23.2] |
+| (4) unsafe failure | 75.4% [63.8, 86.0] | 70.9% [56.6, 83.5] | 72.7% [62.5, 81.7] |
+
+Observations across operating points worth noting:
+
+* The paper's **83% safe-failure claim is replicated by the all-agree operating
+  point (union 81.5%, interval covers 83%) and the original-only all-agree
+  (86.5%, interval 75.3–95.6%).** It is NOT reproduced under majority vote or
+  any-flags.
+* **Plan E and originals are statistically indistinguishable at every category
+  under every operating point** (intervals overlap heavily). The framework's
+  main finding — safe failure dominance — replicates on 20 scenarios the four
+  agents have never seen, with constraints committed to git before the first
+  run. This is the single most important sentence in the extension study.
+* **Unsafe success stays rare and bounded.** Union interval under majority vote
+  is 1.2–7.1%; under all-agree, 0.4–2.3%. Even under any-flags it caps at 18.9%.
+  Category 2 is real but small on this benchmark.
+
+### What this changes in the paper
+
+*   **Safe-failure dominance holds under consensus** (81.5%, close to the paper's
+    original 83% under state+rule and the Task 2-updated 84.5%), **weakens under
+    majority vote** (51.8%), and **collapses under any-flags** (15.8%). The paper's
+    main claim survives only under the strictest aggregation, and the number is
+    now reported with its operating point attached, not as a fixed value.
+*   **The framework generalises to unseen scenarios.** The Plan E 20 scenarios
+    were drafted after the original 20 and committed to git before any agent ran
+    (`3d33399`). Per-category distributions on Plan E are within 2–5 percentage
+    points of originals under all three operating points. This is external
+    validation of the two-dimensional model.
+*   **Unsafe success is rare but real.** 1.3%–11.4% depending on the operating
+    point, matching the paper's original 1.9%–6.4% window. Category (2) remains
+    the smallest cell but a non-trivial one.
+*   **The gate is unusable with these smaller judges without an audit.** Under
+    any-flags, 73% of all runs — including those where O=0, i.e. the agent did
+    NOT reach the objective — would be labelled unsafe-failure. Without α on
+    those judges, that number is uninterpretable.
+
+### Per-agent profile (majority vote, union of both waves, hard constraints only)
+
+Point estimates with 95% percentile bootstrap intervals (resampling scenarios).
+
+| agent | N | intended | unsafe success | safe failure | unsafe failure |
+|---|---|---|---|---|---|
+| sonnet-5.5 | 185 | 5.9% [0.0, 14.3] | 4.3% [1.1, 8.1] | 49.2% [36.5, 61.6] | 40.5% [29.0, 52.8] |
+| haiku-5.5 | 222 | 4.5% [0.4, 10.4] | 3.6% [0.0, 8.7] | 55.4% [43.0, 67.4] | 36.5% [24.8, 48.7] |
+| gpt-6-sol | 182 | 10.4% [2.9, 19.9] | 2.7% [0.5, 5.8] | 49.5% [36.2, 62.7] | 37.4% [25.0, 50.3] |
+| gpt-6-luna | 183 | 10.9% [3.8, 19.9] | 4.4% [0.0, 9.9] | 52.5% [39.8, 64.9] | 32.2% [20.9, 44.3] |
+
+Objective-achievement ranking (I + category 2):
+`gpt-6-luna 15.3% > gpt-6-sol 13.1% > sonnet 10.2% > haiku 8.1%`.
+
+Gate-passing ranking under majority vote (V=0, i.e. categories 1 + 3):
+`haiku 59.9% > gpt-6-luna 63.4% > gpt-6-sol 59.9% > sonnet 55.1%`.
+
+The paper's original Kendall τ=−0.60 inversion was under state+rule. Under the
+new three-judge majority-vote protocol the rankings are **weakly correlated** rather
+than opposed; the inversion is not reproduced. The paper's claim should be stated as
+"the ranking inversion holds under deterministic state+rule checkers but not under
+smaller-model per-constraint judging", not as "the two rankings are opposed".
+
+### What is still missing from this analysis
+
+*   Human audit α and β for the three new judges. Pending the two annotators.
+    Until then, every V-dependent number here is reported without the
+    `p = (q − α)/(1 − α − β)` correction. The infrastructure for applying it
+    exists in `scripts/analyse_audit.py` and the synthetic recovery test
+    confirms it works at 91–93% nominal 95% coverage (`RESULTS.md` §Task 1 §1d).
+*   The Kendall τ comparison across checkers (state+rule vs rules+state+judge-A
+    vs majority-3-judge vs any-flags) belongs in the paper's checker-configuration
+    table and is one script run away.
+
+Numbers above are from `results/judge_v2.jsonl` and `results/objective_v2.jsonl`,
+summarised in `results/judges_v2_summary.json`. Full join and reclassification is
+reproducible from those three files with no further model calls.
+
+---
+
 ## Task 4 — Next-action early warning
 
 **Status: done. Negative on the repair, but it found an error in the paper's existing

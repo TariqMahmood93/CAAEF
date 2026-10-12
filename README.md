@@ -41,6 +41,19 @@ Model IDs, prices as fetched on the run date, and the reasoning-mode settings ar
 
 ## Reproducing from a clean machine
 
+**One-command path (recommended):** `bash scripts/reproduce.sh` runs the full
+pipeline end to end — tests, base images, Phase 2 agent runs for both the
+original 20 scenarios and the Plan E 20 unseen scenarios, Phase 3 objective
+rescoring, Phase 4 judges (original two-judge batched + Task 3d three-judge
+per-constraint), Phase 5 analyses. Resumable; each phase skips work with a
+saved footer. Cost ~$14.10 total; wall clock ~27 h with the judges wave
+dominating. `bash scripts/reproduce.sh --skip-run` reruns only the free
+analyses from stored traces (what the paper's reproducibility property
+requires); `bash scripts/reproduce.sh --phase 5` runs just the analyses.
+
+The manual step-by-step below is kept as reference and for debugging; it
+is what `reproduce.sh` chains.
+
 Prerequisites: Linux or macOS, Docker, Python 3.12, [`uv`](https://docs.astral.sh/uv/),
 ~2 GB disk for images and traces.
 
